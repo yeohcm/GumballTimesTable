@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gumball's Times Table Challenge</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🎮 Gumball's Times Table Challenge!</h1>
+            <p class="subtitle">Help Gumball and Darwin save Elmore Junior High!</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="streak">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Progress</div>
+                <div class="stat-value" id="progress">0/0</div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active start-screen">
+            <div class="character-bubble">
+                <div class="character-avatar">
+                    <img src="assets/gumball.png" alt="Gumball">
+                </div>
+                <div>
+                    <div class="character-name">Gumball</div>
+                    <p>Hey there! I'm Gumball! Help me save Elmore by solving multiplication problems!</p>
+                </div>
+            </div>
+
+            <div class="mode-buttons">
+                <button class="mode-btn practice-btn" onclick="selectMode('practice')">
+                    📚 Practice Mode<br><small>10 questions, no timer</small>
+                </button>
+                <button class="mode-btn race-btn" onclick="selectMode('race')">
+                    ⚡ Speed Race<br><small>15 questions, 10 sec each</small>
+                </button>
+                <button class="mode-btn boss-btn" onclick="selectMode('boss')">
+                    👾 Boss Battle<br><small>20 questions, 8 sec each</small>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Selection Screen -->
+        <div id="table-select-screen" class="screen">
+            <div class="character-bubble">
+                <div class="character-avatar">
+                    <img src="assets/darwin.png" alt="Darwin">
+                </div>
+                <div>
+                    <div class="character-name">Darwin</div>
+                    <p>Hey! It's me, Darwin! Which times tables do you want to practice? You can pick as many as you like!</p>
+                </div>
+            </div>
+
+            <div class="table-grid" id="table-grid"></div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="startGame()">Start Game! 🚀</button>
+                <button class="btn btn-secondary" onclick="goBackToStart()">Back</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div style="text-align: right; margin-bottom: 20px;">
+                <button class="btn btn-secondary" onclick="exitGame()" style="padding: 8px 20px; font-size: 0.9em;">Exit Game ✕</button>
+            </div>
+
+            <div id="timer-container" class="timer-bar" style="display: none;">
+                <div class="timer-fill" id="timer-fill"></div>
+                <div class="timer-text" id="timer-text">10</div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <div class="character-bubble" id="character-message">
+                <div class="character-avatar" id="character-avatar"></div>
+                <div>
+                    <div class="character-name" id="character-name">Gumball</div>
+                    <p id="character-text">You can do this! 💪</p>
+                </div>
+            </div>
+
+            <div class="question-box">
+                <div class="question-text" id="question">5 × 7 = ?</div>
+            </div>
+
+            <div class="feedback-area" id="feedback-area"></div>
+
+            <div class="answer-grid" id="answer-grid"></div>
+
+            <div class="encouragement" id="encouragement"></div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen results-screen">
+            <h2 class="result-title" id="result-title">Awesome Work!</h2>
+
+            <div class="stars" id="stars">⭐⭐⭐</div>
+
+            <div class="character-bubble" id="result-message">
+                <div class="character-avatar" id="result-avatar"></div>
+                <div>
+                    <div class="character-name" id="result-character">Gumball</div>
+                    <p id="result-text">You did an amazing job! 🎉</p>
+                </div>
+            </div>
+
+            <div class="stats-table">
+                <div class="stat-item">
+                    <div class="stat-item-label">Correct</div>
+                    <div class="stat-item-value" id="result-correct">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-item-label">Wrong</div>
+                    <div class="stat-item-value" id="result-wrong">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-item-label">Accuracy</div>
+                    <div class="stat-item-value" id="result-accuracy">0%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-item-label">Final Score</div>
+                    <div class="stat-item-value" id="result-score">0</div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="playAgain()">Play Again! 🎮</button>
+                <button class="btn btn-secondary" onclick="changeTables()">Change Tables 🎯</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
