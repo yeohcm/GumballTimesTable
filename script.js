@@ -366,6 +366,8 @@ function updateStats() {
 // ==========================================
 
 function showResults() {
+    gameState.currentQuestion = gameState.totalQuestions;
+    updateStats();
     const accuracy = Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100);
 
     let title, stars, message, resultCharacter;
