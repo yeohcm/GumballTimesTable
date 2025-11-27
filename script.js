@@ -161,7 +161,9 @@ function shootProjectile(isPlayerShooting) {
 
     container.appendChild(projectile);
 
+    // Trigger explosion on impact after projectile travels
     setTimeout(() => {
+        createExplosion(isPlayerShooting);
         projectile.remove();
     }, 600);
 }
@@ -172,9 +174,89 @@ function hitCharacter(isPlayerHit) {
         : document.getElementById('opponent-character');
 
     character.classList.add('hit');
+
+    // Screen shake effect
+    screenShake();
+
+    // Flash overlay
+    createFlashOverlay();
+
     setTimeout(() => {
         character.classList.remove('hit');
     }, 500);
+}
+
+function createExplosion(isPlayerShooting) {
+    const container = document.getElementById('projectile-container');
+    const centerX = isPlayerShooting ? '70%' : '30%';
+
+    // Main burst
+    const burst = document.createElement('div');
+    burst.className = 'explosion-burst';
+    burst.style.left = centerX;
+    burst.style.top = '50%';
+    burst.style.transform = 'translate(-50%, -50%)';
+    container.appendChild(burst);
+
+    // Explosion rings
+    for (let i = 1; i <= 2; i++) {
+        const ring = document.createElement('div');
+        ring.className = `explosion-ring ring${i}`;
+        ring.style.width = (30 + i * 20) + 'px';
+        ring.style.height = (30 + i * 20) + 'px';
+        ring.style.left = centerX;
+        ring.style.top = '50%';
+        ring.style.transform = 'translate(-50%, -50%)';
+        container.appendChild(ring);
+    }
+
+    // Particles
+    const particleCount = 12;
+    for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * Math.PI * 2;
+        const distance = 80 + Math.random() * 60;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+
+        const particle = document.createElement('div');
+        particle.className = `explosion-particle ${Math.random() > 0.5 ? 'particle-fire' : 'particle-spark'}`;
+        particle.style.left = centerX;
+        particle.style.top = '50%';
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.transform = 'translate(-50%, -50%)';
+        container.appendChild(particle);
+    }
+
+    // Cleanup
+    setTimeout(() => {
+        burst.remove();
+        container.querySelectorAll('.explosion-ring, .explosion-particle').forEach(el => el.remove());
+    }, 800);
+}
+
+function screenShake() {
+    const gameScreen = document.getElementById('game-screen');
+    gameScreen.style.animation = 'none';
+
+    // Trigger reflow to restart animation
+    void gameScreen.offsetWidth;
+
+    gameScreen.style.animation = 'screenShake 0.5s ease-out';
+
+    setTimeout(() => {
+        gameScreen.style.animation = 'none';
+    }, 500);
+}
+
+function createFlashOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'flash-overlay';
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+        overlay.remove();
+    }, 300);
 }
 
 // ==========================================

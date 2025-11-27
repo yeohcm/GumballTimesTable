@@ -162,6 +162,80 @@ body {
     }
 }
 
+@keyframes explosion {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+@keyframes explosionFlash {
+    0% {
+        background: rgba(255, 200, 100, 0.8);
+    }
+    100% {
+        background: rgba(255, 100, 50, 0);
+    }
+}
+
+@keyframes screenShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10% {
+        transform: translateX(-8px);
+    }
+    20% {
+        transform: translateX(8px);
+    }
+    30% {
+        transform: translateX(-8px);
+    }
+    40% {
+        transform: translateX(8px);
+    }
+    50% {
+        transform: translateX(-5px);
+    }
+    60% {
+        transform: translateX(5px);
+    }
+    70% {
+        transform: translateX(-3px);
+    }
+    80% {
+        transform: translateX(3px);
+    }
+}
+
+@keyframes burst {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+    }
+}
+
 /* Header */
 .header {
     text-align: center;
@@ -516,6 +590,67 @@ body {
 
 .energy-projectile.from-right {
     animation: shootRight 0.6s ease-out forwards, energyGlow 0.6s ease-out;
+}
+
+.explosion-burst {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: explosion 0.6s ease-out forwards;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 200, 100, 0.9), rgba(255, 100, 50, 0.6));
+    box-shadow: 0 0 30px rgba(255, 150, 50, 0.8);
+}
+
+.explosion-ring {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    border: 3px solid;
+    animation: explosion 0.7s ease-out forwards;
+}
+
+.explosion-ring.ring1 {
+    border-color: rgba(255, 200, 50, 0.8);
+}
+
+.explosion-ring.ring2 {
+    border-color: rgba(255, 100, 50, 0.6);
+}
+
+.explosion-particles {
+    position: absolute;
+    pointer-events: none;
+}
+
+.explosion-particle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particleFloat 0.8s ease-out forwards;
+}
+
+.particle-fire {
+    background: radial-gradient(circle, rgba(255, 200, 100, 0.9), rgba(255, 100, 50, 0.4));
+}
+
+.particle-spark {
+    background: #ffeb3b;
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
+}
+
+.flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1000;
+    animation: explosionFlash 0.3s ease-out;
 }
 
 /* Game Screen */
