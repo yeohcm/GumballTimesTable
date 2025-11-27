@@ -84,11 +84,11 @@ const characters = {
         name: 'Anais',
         color: '#ff69b4'
     },
-    tinaRex: {
-        emoji: '🦖',
-        image: 'assets/tina-rex.svg',
-        name: 'Tina Rex',
-        color: '#9c27b0'
+    nicoleWatterson: {
+        emoji: '🐱',
+        image: 'assets/nicole-watterson.png',
+        name: 'Nicole Watterson',
+        color: '#ff1493'
     },
     bananaJoe: {
         emoji: '🍌',
@@ -113,6 +113,12 @@ const characters = {
         image: 'assets/penny.png',
         name: 'Penny',
         color: '#daa520'
+    },
+    tobiasWilson: {
+        emoji: '🦁',
+        image: 'assets/tobias-wilson.png',
+        name: 'Tobias Wilson',
+        color: '#ff8c00'
     }
 };
 
@@ -125,7 +131,7 @@ function getCharacterByMode(mode) {
     const modeCharacters = {
         practice: characters.anais,
         race: characters.darwin,
-        boss: characters.tinaRex
+        boss: characters.nicoleWatterson
     };
     return modeCharacters[mode] || characters.gumball;
 }
@@ -660,7 +666,7 @@ function showResults() {
         title = '✨ KEEP TRYING! ✨';
         stars = '✨';
         message = `${gameState.playerName}, ${characterMessages.result.tryAgain}`;
-        resultCharacter = characters.tinaRex;
+        resultCharacter = characters.nicoleWatterson;
     }
 
     document.getElementById('result-title').textContent = title;
