@@ -393,6 +393,15 @@ function showNextQuestion() {
     const randomMessage = characterMessages.question[Math.floor(Math.random() * characterMessages.question.length)];
     updateCharacterDisplay(modeCharacter, randomMessage);
 
+    // Animate character - thinking animation
+    const avatar = document.getElementById('character-avatar');
+    avatar.classList.remove('celebrating', 'sad-reaction');
+    avatar.classList.add('thinking');
+    setTimeout(() => {
+        avatar.classList.remove('thinking');
+        avatar.classList.add('idle');
+    }, 1500);
+
     const answers = generateAnswers(q.answer);
     const grid = document.getElementById('answer-grid');
     grid.innerHTML = '';
@@ -429,6 +438,11 @@ function checkAnswer(answer, btn) {
 
         if (gameState.mode === 'practice') playSound(sounds.correct);
 
+        // Character celebration animation
+        const avatar = document.getElementById('character-avatar');
+        avatar.classList.remove('thinking', 'sad-reaction', 'idle');
+        avatar.classList.add('celebrating');
+
         // Battle effects only in Boss Battle mode
         if (gameState.mode === 'boss') {
             gameState.playerHits++;
@@ -456,6 +470,11 @@ function checkAnswer(answer, btn) {
         gameState.wrongAnswers++;
 
         if (gameState.mode === 'practice') playSound(sounds.wrong);
+
+        // Character sad reaction animation
+        const avatar = document.getElementById('character-avatar');
+        avatar.classList.remove('thinking', 'celebrating', 'idle');
+        avatar.classList.add('sad-reaction');
 
         // Battle effects only in Boss Battle mode
         if (gameState.mode === 'boss') {
