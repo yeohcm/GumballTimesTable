@@ -411,7 +411,9 @@ function showNextQuestion() {
     gameState.currentAnswer = q.answer;
 
     document.getElementById('question').textContent = `${q.a} × ${q.b} = ?`;
-    document.getElementById('feedback-area').textContent = '';
+    const feedbackArea = document.getElementById('feedback-area');
+    feedbackArea.textContent = '';
+    feedbackArea.className = 'feedback-area';
     document.getElementById('encouragement').textContent = '';
 
     // Show mode-specific character for questions
