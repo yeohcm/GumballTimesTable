@@ -143,6 +143,8 @@ function updateCharacterDisplay(character, message) {
     avatar.innerHTML = `<img src="${character.image}" alt="${character.name}">`;
     document.getElementById('character-name').textContent = character.name;
     document.getElementById('character-text').textContent = message;
+    // Initialize with idle animation
+    avatar.classList.add('idle');
 }
 
 // ==========================================
@@ -442,6 +444,11 @@ function checkAnswer(answer, btn) {
         const avatar = document.getElementById('character-avatar');
         avatar.classList.remove('thinking', 'sad-reaction', 'idle');
         avatar.classList.add('celebrating');
+        // Return to idle after celebration animation
+        setTimeout(() => {
+            avatar.classList.remove('celebrating');
+            avatar.classList.add('idle');
+        }, 600);
 
         // Battle effects only in Boss Battle mode
         if (gameState.mode === 'boss') {
@@ -475,6 +482,11 @@ function checkAnswer(answer, btn) {
         const avatar = document.getElementById('character-avatar');
         avatar.classList.remove('thinking', 'celebrating', 'idle');
         avatar.classList.add('sad-reaction');
+        // Return to idle after sad reaction animation
+        setTimeout(() => {
+            avatar.classList.remove('sad-reaction');
+            avatar.classList.add('idle');
+        }, 600);
 
         // Battle effects only in Boss Battle mode
         if (gameState.mode === 'boss') {
