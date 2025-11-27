@@ -476,6 +476,11 @@ function startTimer() {
     const seconds = timerConfig[gameState.mode];
     if (seconds === 0) return;
 
+    // Clear any existing timer to prevent multiple timers running simultaneously
+    if (gameState.timer) {
+        clearInterval(gameState.timer);
+    }
+
     const timerContainer = document.getElementById('timer-container');
     timerContainer.style.display = 'block';
 
