@@ -89,6 +89,30 @@ const characters = {
         image: 'assets/tina-rex.svg',
         name: 'Tina Rex',
         color: '#9c27b0'
+    },
+    bananaJoe: {
+        emoji: '🍌',
+        image: 'assets/banana-joe.png',
+        name: 'Banana Joe',
+        color: '#ffd700'
+    },
+    billy: {
+        emoji: '🐑',
+        image: 'assets/billy.png',
+        name: 'Billy',
+        color: '#d4a5a5'
+    },
+    dad: {
+        emoji: '👨',
+        image: 'assets/dad.png',
+        name: 'Dad',
+        color: '#8b4513'
+    },
+    penny: {
+        emoji: '🦌',
+        image: 'assets/penny.png',
+        name: 'Penny',
+        color: '#daa520'
     }
 };
 
@@ -338,6 +362,17 @@ function selectMode(mode) {
         boss: 20
     };
     gameState.totalQuestions = modes[mode];
+
+    // Set random character for table selection screen
+    const randomCharacter = getRandomCharacter();
+    const tableScreenAvatar = document.querySelector('#table-select-screen .character-avatar');
+    const tableScreenName = document.querySelector('#table-select-screen .character-name');
+    const tableScreenText = document.querySelector('#table-select-screen .character-bubble p');
+
+    tableScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    tableScreenName.textContent = randomCharacter.name;
+    tableScreenText.textContent = `Hey! It's me, ${randomCharacter.name}! Which times tables do you want to practice? You can pick as many as you like!`;
+
     showScreen('table-select-screen');
 }
 
@@ -653,10 +688,33 @@ function playAgain() {
 }
 
 function changeTables() {
+    // Set random character for table selection screen
+    const randomCharacter = getRandomCharacter();
+    const tableScreenAvatar = document.querySelector('#table-select-screen .character-avatar');
+    const tableScreenName = document.querySelector('#table-select-screen .character-name');
+    const tableScreenText = document.querySelector('#table-select-screen .character-bubble p');
+
+    tableScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    tableScreenName.textContent = randomCharacter.name;
+    tableScreenText.textContent = `Hey! It's me, ${randomCharacter.name}! Which times tables do you want to practice? You can pick as many as you like!`;
+
     showScreen('table-select-screen');
 }
 
 function goBackToStart() {
+    // Set random character for start screen when going back
+    const randomCharacter = getRandomCharacter();
+    const startScreenAvatar = document.querySelector('#start-screen .character-avatar');
+    const startScreenName = document.querySelector('#start-screen .character-name');
+    const welcomeMessage = document.getElementById('welcome-message');
+
+    startScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    startScreenName.textContent = randomCharacter.name;
+
+    // Animate welcome message with new character
+    const message = `Hey ${gameState.playerName}! I'm ${randomCharacter.name}! Help me save Elmore by solving multiplication problems!`;
+    typeMessage(welcomeMessage, message, 80);
+
     showScreen('start-screen');
 }
 
@@ -672,6 +730,20 @@ function exitGame() {
     gameState.opponentHits = 0;
     gameState.opponentCharacter = null;
     updateStats();
+
+    // Set random character for start screen when exiting
+    const randomCharacter = getRandomCharacter();
+    const startScreenAvatar = document.querySelector('#start-screen .character-avatar');
+    const startScreenName = document.querySelector('#start-screen .character-name');
+    const welcomeMessage = document.getElementById('welcome-message');
+
+    startScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    startScreenName.textContent = randomCharacter.name;
+
+    // Animate welcome message with new character
+    const message = `Hey ${gameState.playerName}! I'm ${randomCharacter.name}! Help me save Elmore by solving multiplication problems!`;
+    typeMessage(welcomeMessage, message, 80);
+
     showScreen('start-screen');
 }
 
@@ -690,8 +762,16 @@ function startWithName() {
     // Show start screen
     showScreen('start-screen');
 
+    // Set random character for start screen
+    const randomCharacter = getRandomCharacter();
+    const startScreenAvatar = document.querySelector('#start-screen .character-avatar');
+    const startScreenName = document.querySelector('#start-screen .character-name');
+
+    startScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    startScreenName.textContent = randomCharacter.name;
+
     // Animate welcome message with player's name
-    const welcomeMessage = `Hey ${gameState.playerName}! I'm Gumball! Help me save Elmore by solving multiplication problems!`;
+    const welcomeMessage = `Hey ${gameState.playerName}! I'm ${randomCharacter.name}! Help me save Elmore by solving multiplication problems!`;
     typeMessage(document.getElementById('welcome-message'), welcomeMessage, 80);
 
     // Clear input for next time
@@ -707,6 +787,19 @@ function startWithName() {
 // Initialize Game
 // ==========================================
 
+function initializeNameScreen() {
+    // Set random character for name input screen
+    const randomCharacter = getRandomCharacter();
+    const nameScreenAvatar = document.querySelector('#name-screen .character-avatar');
+    const nameScreenName = document.querySelector('#name-screen .character-name');
+    const nameScreenText = document.querySelector('#name-screen .character-bubble p');
+
+    nameScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    nameScreenName.textContent = randomCharacter.name;
+    nameScreenText.textContent = `Hey there, friend! What's your name? I'm ${randomCharacter.name}! ${randomCharacter.emoji}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initTableGrid();
+    initializeNameScreen();
 });
