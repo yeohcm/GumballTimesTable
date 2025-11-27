@@ -366,6 +366,41 @@ body {
     text-align: center;
 }
 
+/* Name Input */
+.name-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.name-input {
+    padding: 15px 20px;
+    font-size: 1.1em;
+    border: 3px solid var(--color-purple);
+    border-radius: 15px;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    text-align: center;
+    color: var(--color-dark-purple);
+    background: var(--color-light-gray);
+    transition: all 0.3s ease;
+}
+
+.name-input:focus {
+    outline: none;
+    background: var(--color-white);
+    box-shadow: 0 0 15px rgba(156, 39, 176, 0.3);
+    border-color: var(--color-dark-purple);
+}
+
+.name-input::placeholder {
+    color: var(--color-dark-purple);
+    opacity: 0.6;
+}
+
 /* Character Bubble */
 .character-bubble {
     background: var(--color-light-gray);

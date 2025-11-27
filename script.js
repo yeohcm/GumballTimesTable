@@ -4,6 +4,7 @@
 
 // Game State
 const gameState = {
+    playerName: 'Lucas',
     mode: null,
     selectedTables: [2, 5, 10],
     currentQuestion: 0,
@@ -131,10 +132,10 @@ const characterMessages = {
         "Perfect answer! ✨"
     ],
     result: {
-        excellent: "You're a TRUE MATH CHAMPION! I knew I could count on you! 🏅",
-        great: "You did an amazing job! I'm so proud of you! 🎉",
-        good: "Great effort! You're getting better every time! 💪",
-        tryAgain: "Don't give up! Every attempt makes you stronger! Keep going! 💪"
+        excellent: "incredible! 🏅",
+        great: "amazing! 🎉",
+        good: "great! 💪",
+        tryAgain: "keep trying! 💪"
     }
 };
 
@@ -583,22 +584,22 @@ function showResults() {
     if (accuracy >= 90) {
         title = '🌟 LEGENDARY! 🌟';
         stars = '⭐⭐⭐';
-        message = characterMessages.result.excellent;
+        message = `${gameState.playerName}, you were ${characterMessages.result.excellent}`;
         resultCharacter = characters.gumball;
     } else if (accuracy >= 75) {
         title = '⭐ SUPER! ⭐';
         stars = '⭐⭐';
-        message = characterMessages.result.great;
+        message = `${gameState.playerName}, you were ${characterMessages.result.great}`;
         resultCharacter = characters.darwin;
     } else if (accuracy >= 50) {
         title = '👍 GOOD JOB! 👍';
         stars = '⭐';
-        message = characterMessages.result.good;
+        message = `${gameState.playerName}, you did ${characterMessages.result.good}`;
         resultCharacter = characters.anais;
     } else {
         title = '✨ KEEP TRYING! ✨';
         stars = '✨';
-        message = characterMessages.result.tryAgain;
+        message = `${gameState.playerName}, ${characterMessages.result.tryAgain}`;
         resultCharacter = characters.tinaRex;
     }
 
@@ -652,6 +653,26 @@ function exitGame() {
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
+}
+
+function startWithName() {
+    const nameInput = document.getElementById('player-name-input');
+    const playerName = nameInput.value.trim();
+
+    // Use input name or default to 'Lucas'
+    gameState.playerName = playerName || 'Lucas';
+
+    // Update the welcome message with player's name
+    document.getElementById('welcome-player-name').textContent = gameState.playerName;
+
+    // Show start screen
+    showScreen('start-screen');
+
+    // Clear input for next time
+    nameInput.value = '';
+
+    // Focus on the first mode button
+    document.querySelector('.mode-btn').focus();
 }
 
 // ==========================================
