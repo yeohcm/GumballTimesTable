@@ -675,7 +675,7 @@ function showResults() {
     const resultAvatar = document.getElementById('result-avatar');
     resultAvatar.innerHTML = `<img src="${resultCharacter.image}" alt="${resultCharacter.name}">`;
     document.getElementById('result-character').textContent = resultCharacter.name;
-    document.getElementById('result-text').textContent = message;
+    typeMessage(document.getElementById('result-text'), message, 80);
     document.getElementById('result-correct').textContent = gameState.correctAnswers;
     document.getElementById('result-wrong').textContent = gameState.wrongAnswers;
     document.getElementById('result-accuracy').textContent = accuracy + '%';
