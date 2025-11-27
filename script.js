@@ -138,36 +138,40 @@ function getCharacterByMode(mode) {
 
 const characterMessages = {
     question: [
-        "You can do this! 💪",
-        "Think carefully! 🤔",
-        "What's the answer? 🧠",
-        "Show me what you got! ⭐",
-        "Elmore needs you! 🏫",
-        "Use your brain power! 🧩",
-        "Math time! 📐",
-        "Let's solve this together! 👥",
-        "You've got this! ✨",
-        "Focus and win! 🎯"
+        "You can do this, {playerName}! 💪",
+        "Think carefully, {playerName}! 🤔",
+        "What's your answer, {playerName}? 🧠",
+        "Show me what you got, {playerName}! ⭐",
+        "{playerName}, Elmore needs you! 🏫",
+        "{playerName}, use your brain power! 🧩",
+        "It's your time to shine, {playerName}! 📐",
+        "Let's solve this together, {playerName}! 👥",
+        "You've got this, {playerName}! ✨",
+        "{playerName}, focus and win! 🎯"
     ],
     correct: [
-        "Awesome! Keep it up! 🎉",
-        "You're on fire! 🔥",
-        "Amazing work! 💫",
-        "Spectacular! ⚡",
-        "You're a math genius! 🧙",
-        "Fantastic job! 🌟",
-        "Outstanding! 🏆",
-        "Super smart! 🤓",
-        "Way to go! 🚀",
-        "Perfect answer! ✨"
+        "{playerName}, awesome! Keep it up! 🎉",
+        "{playerName}, you're on fire! 🔥",
+        "{playerName}, amazing work! 💫",
+        "{playerName}, spectacular! ⚡",
+        "{playerName}, you're a math genius! 🧙",
+        "{playerName}, fantastic job! 🌟",
+        "{playerName}, outstanding! 🏆",
+        "{playerName}, super smart! 🤓",
+        "{playerName}, way to go! 🚀",
+        "{playerName}, perfect answer! ✨"
     ],
     result: {
-        excellent: "incredible! 🏅",
-        great: "amazing! 🎉",
-        good: "great! 💪",
-        tryAgain: "keep trying! 💪"
+        excellent: "absolutely incredible! 🏅",
+        great: "truly amazing! 🎉",
+        good: "doing great! 💪",
+        tryAgain: "you can do better next time! 💪"
     }
 };
+
+function personalizeMessage(message) {
+    return message.replace('{playerName}', gameState.playerName);
+}
 
 function typeMessage(element, message, speed = 100) {
     element.textContent = '';
@@ -461,7 +465,8 @@ function showNextQuestion() {
     // Show mode-specific character for questions
     const modeCharacter = getCharacterByMode(gameState.mode);
     const randomMessage = characterMessages.question[Math.floor(Math.random() * characterMessages.question.length)];
-    updateCharacterDisplay(modeCharacter, randomMessage);
+    const personalizedMessage = personalizeMessage(randomMessage);
+    updateCharacterDisplay(modeCharacter, personalizedMessage);
 
     // Animate character - thinking animation
     const avatar = document.getElementById('character-avatar');
@@ -534,7 +539,8 @@ function checkAnswer(answer, btn) {
         }
 
         const encouragement = characterMessages.correct[Math.floor(Math.random() * characterMessages.correct.length)];
-        document.getElementById('encouragement').textContent = encouragement;
+        const personalizedEncouragement = personalizeMessage(encouragement);
+        document.getElementById('encouragement').textContent = personalizedEncouragement;
     } else {
         if (btn) btn.classList.add('incorrect');
         const correctBtn = Array.from(document.querySelectorAll('.answer-btn')).find(b => parseInt(b.textContent) === gameState.currentAnswer);
