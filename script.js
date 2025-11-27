@@ -139,11 +139,34 @@ const characterMessages = {
     }
 };
 
+function typeMessage(element, message, speed = 100) {
+    element.textContent = '';
+    const words = message.split(' ');
+    let wordIndex = 0;
+
+    function typeNextWord() {
+        if (wordIndex < words.length) {
+            if (wordIndex > 0) {
+                element.textContent += ' ';
+            }
+            element.textContent += words[wordIndex];
+            wordIndex++;
+            setTimeout(typeNextWord, speed);
+        }
+    }
+
+    typeNextWord();
+}
+
 function updateCharacterDisplay(character, message) {
     const avatar = document.getElementById('character-avatar');
     avatar.innerHTML = `<img src="${character.image}" alt="${character.name}">`;
     document.getElementById('character-name').textContent = character.name;
-    document.getElementById('character-text').textContent = message;
+
+    // Animate text word by word
+    const textElement = document.getElementById('character-text');
+    typeMessage(textElement, message, 80);
+
     // Initialize with idle animation
     avatar.classList.add('idle');
 }
