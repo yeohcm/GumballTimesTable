@@ -38,11 +38,11 @@ const sounds = {
         'assets/sounds/wrong3.mp3'
     ],
     explosion: [
-        'assets/sounds/explosion1.mp3',
-        'assets/sounds/explosion2.mp3',
-        'assets/sounds/explosion3.mp3'
+        'assets/sounds/explosion1.wav',
+        'assets/sounds/explosion2.wav',
+        'assets/sounds/explosion3.wav'
     ],
-    impact: 'assets/sounds/impact.mp3',
+    impact: 'assets/sounds/impact.wav',
     win: 'assets/sounds/win.mp3',
     lose: 'assets/sounds/lose.mp3'
 };
