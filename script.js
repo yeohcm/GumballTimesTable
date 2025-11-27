@@ -16,7 +16,10 @@ const gameState = {
     currentAnswer: 0,
     timer: null,
     timeLeft: 0,
-    answering: false
+    answering: false,
+    opponentCharacter: null,
+    playerHits: 0,
+    opponentHits: 0
 };
 
 // ==========================================
@@ -137,6 +140,44 @@ function updateCharacterDisplay(character, message) {
 }
 
 // ==========================================
+// Battle System
+// ==========================================
+
+function initializeBattle() {
+    const opponentCharacter = document.getElementById('opponent-character');
+    opponentCharacter.innerHTML = `<img src="${gameState.opponentCharacter.image}" alt="${gameState.opponentCharacter.name}">`;
+    updateBattleStats();
+}
+
+function updateBattleStats() {
+    document.getElementById('player-hits').textContent = gameState.playerHits;
+    document.getElementById('opponent-hits').textContent = gameState.opponentHits;
+}
+
+function shootProjectile(isPlayerShooting) {
+    const container = document.getElementById('projectile-container');
+    const projectile = document.createElement('div');
+    projectile.className = 'energy-projectile ' + (isPlayerShooting ? 'from-left' : 'from-right');
+
+    container.appendChild(projectile);
+
+    setTimeout(() => {
+        projectile.remove();
+    }, 600);
+}
+
+function hitCharacter(isPlayerHit) {
+    const character = isPlayerHit
+        ? document.getElementById('player-character')
+        : document.getElementById('opponent-character');
+
+    character.classList.add('hit');
+    setTimeout(() => {
+        character.classList.remove('hit');
+    }, 500);
+}
+
+// ==========================================
 // Table Selection
 // ==========================================
 
@@ -187,8 +228,12 @@ function startGame() {
     gameState.streak = 0;
     gameState.correctAnswers = 0;
     gameState.wrongAnswers = 0;
+    gameState.playerHits = 0;
+    gameState.opponentHits = 0;
     gameState.questions = generateQuestions();
+    gameState.opponentCharacter = getRandomCharacter();
     updateStats();
+    initializeBattle();
     showScreen('game-screen');
     showNextQuestion();
 }
@@ -277,14 +322,20 @@ function checkAnswer(answer, btn) {
         if (btn) btn.classList.add('correct');
         gameState.streak++;
         gameState.correctAnswers++;
+        gameState.playerHits++;
         const basePoints = { practice: 10, race: 15, boss: 20 }[gameState.mode];
         const bonus = Math.min(gameState.streak, 5) * 5;
         gameState.score += basePoints + bonus;
 
         if (gameState.mode === 'practice') playSound(sounds.correct);
 
+        // Battle: Player shoots opponent
+        shootProjectile(true);
+        hitCharacter(false);
+        updateBattleStats();
+
         const feedback = document.getElementById('feedback-area');
-        feedback.textContent = `✓ Correct! Amazing! +${basePoints + bonus} points`;
+        feedback.textContent = `✓ Correct! You hit! +${basePoints + bonus} points`;
         feedback.className = 'feedback-area feedback-correct';
 
         const encouragement = characterMessages.correct[Math.floor(Math.random() * characterMessages.correct.length)];
@@ -297,11 +348,17 @@ function checkAnswer(answer, btn) {
         }
         gameState.streak = 0;
         gameState.wrongAnswers++;
+        gameState.opponentHits++;
 
         if (gameState.mode === 'practice') playSound(sounds.wrong);
 
+        // Battle: Opponent shoots player
+        shootProjectile(false);
+        hitCharacter(true);
+        updateBattleStats();
+
         const feedback = document.getElementById('feedback-area');
-        feedback.textContent = `✗ Oops! The answer was ${gameState.currentAnswer}`;
+        feedback.textContent = `✗ Oops! You got hit! The answer was ${gameState.currentAnswer}`;
         feedback.className = 'feedback-area feedback-incorrect';
     }
 
@@ -434,6 +491,9 @@ function exitGame() {
     gameState.streak = 0;
     gameState.correctAnswers = 0;
     gameState.wrongAnswers = 0;
+    gameState.playerHits = 0;
+    gameState.opponentHits = 0;
+    gameState.opponentCharacter = null;
     updateStats();
     showScreen('start-screen');
 }

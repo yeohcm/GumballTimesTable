@@ -97,6 +97,71 @@ body {
     }
 }
 
+@keyframes shootProjectile {
+    from {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes shootLeft {
+    from {
+        left: -5%;
+        opacity: 1;
+    }
+    to {
+        left: 55%;
+        opacity: 0.8;
+    }
+}
+
+@keyframes shootRight {
+    from {
+        right: -5%;
+        opacity: 1;
+    }
+    to {
+        right: 55%;
+        opacity: 0.8;
+    }
+}
+
+@keyframes hitKickback {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        transform: translateX(-15px) scale(1.05);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes hitKickbackRight {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        transform: translateX(15px) scale(1.05);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes energyGlow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(100, 200, 255, 0.8), inset 0 0 10px rgba(100, 200, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(100, 200, 255, 1), inset 0 0 15px rgba(100, 200, 255, 0.8);
+    }
+}
+
 /* Header */
 .header {
     text-align: center;
@@ -331,6 +396,128 @@ body {
     box-shadow: 0 8px 20px rgba(0, 168, 225, 0.4);
 }
 
+/* Battle Arena */
+.battle-arena {
+    background: linear-gradient(135deg, rgba(0, 168, 225, 0.15) 0%, rgba(156, 39, 176, 0.15) 100%);
+    border: 3px solid var(--color-purple);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.battle-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.player-stats, .opponent-stats {
+    flex: 1;
+    text-align: center;
+    background: var(--color-white);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hits-label {
+    font-size: 0.95em;
+    color: var(--color-dark-purple);
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.hits-counter {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: var(--color-purple);
+    background: linear-gradient(135deg, #00FFD9 0%, #FF006E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.battle-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    height: 200px;
+    margin: 20px 0;
+}
+
+.player-position, .opponent-position {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.player-position {
+    transform: scaleX(-1);
+}
+
+.player-character, .opponent-character {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.player-character img, .opponent-character img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.player-character.hit {
+    animation: hitKickback 0.5s ease-out;
+}
+
+.opponent-character.hit {
+    animation: hitKickbackRight 0.5s ease-out;
+}
+
+.battle-center {
+    flex: 0.5;
+    position: relative;
+    height: 100%;
+}
+
+.projectile-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.energy-projectile {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    background: radial-gradient(circle at 30% 30%, rgba(100, 200, 255, 1), rgba(50, 150, 255, 0.8));
+    animation: energyGlow 0.5s ease-out;
+    box-shadow: 0 0 15px rgba(100, 200, 255, 0.9);
+}
+
+.energy-projectile.from-left {
+    animation: shootLeft 0.6s ease-out forwards, energyGlow 0.6s ease-out;
+}
+
+.energy-projectile.from-right {
+    animation: shootRight 0.6s ease-out forwards, energyGlow 0.6s ease-out;
+}
+
 /* Game Screen */
 .progress-bar {
     width: 100%;
@@ -526,6 +713,39 @@ body {
 
 /* Responsive Design */
 @media (max-width: 600px) {
+    .battle-arena {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .battle-stats {
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .player-stats, .opponent-stats {
+        padding: 12px;
+    }
+
+    .hits-counter {
+        font-size: 2em;
+    }
+
+    .battle-field {
+        height: 150px;
+        margin: 15px 0;
+    }
+
+    .player-character, .opponent-character {
+        width: 90px;
+        height: 90px;
+    }
+
+    .energy-projectile {
+        width: 20px;
+        height: 20px;
+    }
+
     .container {
         padding: 25px;
     }
