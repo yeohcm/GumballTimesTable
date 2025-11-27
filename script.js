@@ -37,6 +37,12 @@ const sounds = {
         'assets/sounds/wrong2.mp3',
         'assets/sounds/wrong3.mp3'
     ],
+    explosion: [
+        'assets/sounds/explosion1.mp3',
+        'assets/sounds/explosion2.mp3',
+        'assets/sounds/explosion3.mp3'
+    ],
+    impact: 'assets/sounds/impact.mp3',
     win: 'assets/sounds/win.mp3',
     lose: 'assets/sounds/lose.mp3'
 };
@@ -190,6 +196,9 @@ function createExplosion(isPlayerShooting) {
     const container = document.getElementById('projectile-container');
     const centerX = isPlayerShooting ? '70%' : '30%';
 
+    // Play explosion sound
+    playSound(sounds.explosion);
+
     // Main burst
     const burst = document.createElement('div');
     burst.className = 'explosion-burst';
@@ -236,6 +245,9 @@ function createExplosion(isPlayerShooting) {
 }
 
 function screenShake() {
+    // Play impact sound
+    playSound(sounds.impact);
+
     const gameScreen = document.getElementById('game-screen');
     gameScreen.style.animation = 'none';
 
