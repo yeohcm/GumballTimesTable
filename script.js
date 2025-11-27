@@ -438,7 +438,7 @@ function checkAnswer(answer, btn) {
         const bonus = Math.min(gameState.streak, 5) * 5;
         gameState.score += basePoints + bonus;
 
-        if (gameState.mode === 'practice') playSound(sounds.correct);
+        if (gameState.mode === 'practice' || gameState.mode === 'race') playSound(sounds.correct);
 
         // Character celebration animation
         const avatar = document.getElementById('character-avatar');
@@ -476,7 +476,7 @@ function checkAnswer(answer, btn) {
         gameState.streak = 0;
         gameState.wrongAnswers++;
 
-        if (gameState.mode === 'practice') playSound(sounds.wrong);
+        if (gameState.mode === 'practice' || gameState.mode === 'race') playSound(sounds.wrong);
 
         // Character sad reaction animation
         const avatar = document.getElementById('character-avatar');
