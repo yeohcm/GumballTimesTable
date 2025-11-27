@@ -150,9 +150,16 @@ function updateCharacterDisplay(character, message) {
 // ==========================================
 
 function initializeBattle() {
-    const opponentCharacter = document.getElementById('opponent-character');
-    opponentCharacter.innerHTML = `<img src="${gameState.opponentCharacter.image}" alt="${gameState.opponentCharacter.name}">`;
-    updateBattleStats();
+    // Only show battle arena in Boss Battle mode
+    const battleArena = document.querySelector('.battle-arena');
+    if (gameState.mode === 'boss') {
+        battleArena.classList.add('active');
+        const opponentCharacter = document.getElementById('opponent-character');
+        opponentCharacter.innerHTML = `<img src="${gameState.opponentCharacter.image}" alt="${gameState.opponentCharacter.name}">`;
+        updateBattleStats();
+    } else {
+        battleArena.classList.remove('active');
+    }
 }
 
 function updateBattleStats() {
@@ -416,21 +423,26 @@ function checkAnswer(answer, btn) {
         if (btn) btn.classList.add('correct');
         gameState.streak++;
         gameState.correctAnswers++;
-        gameState.playerHits++;
         const basePoints = { practice: 10, race: 15, boss: 20 }[gameState.mode];
         const bonus = Math.min(gameState.streak, 5) * 5;
         gameState.score += basePoints + bonus;
 
         if (gameState.mode === 'practice') playSound(sounds.correct);
 
-        // Battle: Player shoots opponent
-        shootProjectile(true);
-        hitCharacter(false);
-        updateBattleStats();
-
-        const feedback = document.getElementById('feedback-area');
-        feedback.textContent = `✓ Correct! You hit! +${basePoints + bonus} points`;
-        feedback.className = 'feedback-area feedback-correct';
+        // Battle effects only in Boss Battle mode
+        if (gameState.mode === 'boss') {
+            gameState.playerHits++;
+            shootProjectile(true);
+            hitCharacter(false);
+            updateBattleStats();
+            const feedback = document.getElementById('feedback-area');
+            feedback.textContent = `✓ Correct! You hit! +${basePoints + bonus} points`;
+            feedback.className = 'feedback-area feedback-correct';
+        } else {
+            const feedback = document.getElementById('feedback-area');
+            feedback.textContent = `✓ Correct! Amazing! +${basePoints + bonus} points`;
+            feedback.className = 'feedback-area feedback-correct';
+        }
 
         const encouragement = characterMessages.correct[Math.floor(Math.random() * characterMessages.correct.length)];
         document.getElementById('encouragement').textContent = encouragement;
@@ -442,18 +454,23 @@ function checkAnswer(answer, btn) {
         }
         gameState.streak = 0;
         gameState.wrongAnswers++;
-        gameState.opponentHits++;
 
         if (gameState.mode === 'practice') playSound(sounds.wrong);
 
-        // Battle: Opponent shoots player
-        shootProjectile(false);
-        hitCharacter(true);
-        updateBattleStats();
-
-        const feedback = document.getElementById('feedback-area');
-        feedback.textContent = `✗ Oops! You got hit! The answer was ${gameState.currentAnswer}`;
-        feedback.className = 'feedback-area feedback-incorrect';
+        // Battle effects only in Boss Battle mode
+        if (gameState.mode === 'boss') {
+            gameState.opponentHits++;
+            shootProjectile(false);
+            hitCharacter(true);
+            updateBattleStats();
+            const feedback = document.getElementById('feedback-area');
+            feedback.textContent = `✗ Oops! You got hit! The answer was ${gameState.currentAnswer}`;
+            feedback.className = 'feedback-area feedback-incorrect';
+        } else {
+            const feedback = document.getElementById('feedback-area');
+            feedback.textContent = `✗ Oops! The answer was ${gameState.currentAnswer}`;
+            feedback.className = 'feedback-area feedback-incorrect';
+        }
     }
 
     setTimeout(() => {
