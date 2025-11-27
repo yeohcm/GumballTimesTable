@@ -685,17 +685,20 @@ function startWithName() {
     // Use input name or default to 'Lucas'
     gameState.playerName = playerName || 'Lucas';
 
-    // Update the welcome message with player's name
-    document.getElementById('welcome-player-name').textContent = gameState.playerName;
-
     // Show start screen
     showScreen('start-screen');
+
+    // Animate welcome message with player's name
+    const welcomeMessage = `Hey ${gameState.playerName}! I'm Gumball! Help me save Elmore by solving multiplication problems!`;
+    typeMessage(document.getElementById('welcome-message'), welcomeMessage, 80);
 
     // Clear input for next time
     nameInput.value = '';
 
-    // Focus on the first mode button
-    document.querySelector('.mode-btn').focus();
+    // Focus on the first mode button after a brief delay
+    setTimeout(() => {
+        document.querySelector('.mode-btn').focus();
+    }, 200);
 }
 
 // ==========================================
