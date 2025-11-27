@@ -377,7 +377,8 @@ function selectMode(mode) {
 
     tableScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
     tableScreenName.textContent = randomCharacter.name;
-    tableScreenText.textContent = `Hey! It's me, ${randomCharacter.name}! Which times tables do you want to practice? You can pick as many as you like!`;
+    const message = `Hey! It's me, ${randomCharacter.name}! Which times tables do you want to practice? You can pick as many as you like!`;
+    typeMessage(tableScreenText, message, 80);
 
     showScreen('table-select-screen');
 }
@@ -702,7 +703,8 @@ function changeTables() {
 
     tableScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
     tableScreenName.textContent = randomCharacter.name;
-    tableScreenText.textContent = `Hey! It's me, ${randomCharacter.name}! Which times tables do you want to practice? You can pick as many as you like!`;
+    const message = `Hey! It's me, ${randomCharacter.name}! Which times tables do you want to practice? You can pick as many as you like!`;
+    typeMessage(tableScreenText, message, 80);
 
     showScreen('table-select-screen');
 }
@@ -802,7 +804,10 @@ function initializeNameScreen() {
 
     nameScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
     nameScreenName.textContent = randomCharacter.name;
-    nameScreenText.textContent = `Hey there, friend! What's your name? I'm ${randomCharacter.name}! ${randomCharacter.emoji}`;
+
+    // Animate text with typing effect
+    const message = `Hey there, friend! What's your name? I'm ${randomCharacter.name}! ${randomCharacter.emoji}`;
+    typeMessage(nameScreenText, message, 80);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
