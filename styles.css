@@ -671,10 +671,6 @@ body {
     position: relative;
 }
 
-.player-position {
-    transform: scaleX(-1);
-}
-
 .player-character, .opponent-character {
     width: 120px;
     height: 120px;

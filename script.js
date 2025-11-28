@@ -114,6 +114,12 @@ const characters = {
         name: 'Penny',
         color: '#daa520'
     },
+    bobert: {
+        emoji: '🤖',
+        image: 'assets/bobert.png',
+        name: 'Bobert',
+        color: '#f4eedfff'
+    },    
     tobiasWilson: {
         emoji: '🦁',
         image: 'assets/tobias-wilson.png',
@@ -129,7 +135,7 @@ function getRandomCharacter() {
 
 function getCharacterByMode(mode) {
     const modeCharacters = {
-        practice: characters.anais,
+        practice: characters.bobert,
         race: characters.darwin,
         boss: characters.nicoleWatterson
     };
