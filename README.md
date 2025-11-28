@@ -177,6 +177,4 @@ Please add a LICENSE file for an explicit open-source license. If none is provid
 
 Maintainer: yeohcm (GitHub)
 
-If you'd like, I can:
-- Push this README into the repository on a branch and open a PR, or
-- Update the README with screenshots, badges, or a deployed demo link — tell me which and I'll prepare it.
+
