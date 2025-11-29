@@ -112,23 +112,23 @@ body {
 
 @keyframes shootLeft {
     from {
-        left: -5%;
+        left: 5%;
         opacity: 1;
     }
     to {
-        left: 55%;
-        opacity: 0.8;
+        left: 82%;
+        opacity: 0.9;
     }
 }
 
 @keyframes shootRight {
     from {
-        right: -5%;
+        right: 5%;
         opacity: 1;
     }
     to {
-        right: 55%;
-        opacity: 0.8;
+        right: 82%;
+        opacity: 0.9;
     }
 }
 
@@ -676,6 +676,7 @@ body {
     position: relative;
     height: 120px;
     margin: 6px 0;
+    overflow: visible;
 }
 
 .player-position, .opponent-position {
@@ -724,15 +725,16 @@ body {
 
 .energy-projectile {
     position: absolute;
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
     background: radial-gradient(circle at 30% 30%, rgba(100, 200, 255, 1), rgba(50, 150, 255, 0.8));
     animation: energyGlow 0.5s ease-out;
-    box-shadow: 0 0 15px rgba(100, 200, 255, 0.9);
+    box-shadow: 0 0 20px rgba(100, 200, 255, 0.9);
+    z-index: 5;
 }
 
 .energy-projectile.from-left {
@@ -1057,8 +1059,8 @@ body {
     }
 
     .energy-projectile {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
     }
 
     .title {

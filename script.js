@@ -234,9 +234,11 @@ function updateBattleStats() {
 }
 
 function shootProjectile(isPlayerShooting) {
-    const container = document.getElementById('projectile-container');
+    const container = document.querySelector('.battle-field');
     const projectile = document.createElement('div');
     projectile.className = 'energy-projectile ' + (isPlayerShooting ? 'from-left' : 'from-right');
+    projectile.style.position = 'absolute';
+    projectile.style.zIndex = '5';
 
     container.appendChild(projectile);
 
@@ -266,8 +268,20 @@ function hitCharacter(isPlayerHit) {
 }
 
 function createExplosion(isPlayerShooting) {
-    const container = document.getElementById('projectile-container');
-    const centerX = isPlayerShooting ? '70%' : '30%';
+    // Use battle-field container to position across entire width
+    const container = document.querySelector('.battle-field');
+
+    // Get the actual character positions
+    const targetCharacter = isPlayerShooting
+        ? document.getElementById('opponent-character')
+        : document.getElementById('player-character');
+
+    const containerRect = container.getBoundingClientRect();
+    const characterRect = targetCharacter.getBoundingClientRect();
+
+    // Calculate center position of the character relative to container
+    const characterCenterX = characterRect.left + characterRect.width / 2 - containerRect.left;
+    const characterCenterY = characterRect.top + characterRect.height / 2 - containerRect.top;
 
     // Play explosion sound
     playSound(sounds.explosion);
@@ -275,20 +289,24 @@ function createExplosion(isPlayerShooting) {
     // Main burst
     const burst = document.createElement('div');
     burst.className = 'explosion-burst';
-    burst.style.left = centerX;
-    burst.style.top = '50%';
+    burst.style.position = 'absolute';
+    burst.style.left = characterCenterX + 'px';
+    burst.style.top = characterCenterY + 'px';
     burst.style.transform = 'translate(-50%, -50%)';
+    burst.style.zIndex = '10';
     container.appendChild(burst);
 
     // Explosion rings
     for (let i = 1; i <= 2; i++) {
         const ring = document.createElement('div');
         ring.className = `explosion-ring ring${i}`;
+        ring.style.position = 'absolute';
         ring.style.width = (30 + i * 20) + 'px';
         ring.style.height = (30 + i * 20) + 'px';
-        ring.style.left = centerX;
-        ring.style.top = '50%';
+        ring.style.left = characterCenterX + 'px';
+        ring.style.top = characterCenterY + 'px';
         ring.style.transform = 'translate(-50%, -50%)';
+        ring.style.zIndex = '10';
         container.appendChild(ring);
     }
 
@@ -302,11 +320,13 @@ function createExplosion(isPlayerShooting) {
 
         const particle = document.createElement('div');
         particle.className = `explosion-particle ${Math.random() > 0.5 ? 'particle-fire' : 'particle-spark'}`;
-        particle.style.left = centerX;
-        particle.style.top = '50%';
+        particle.style.position = 'absolute';
+        particle.style.left = characterCenterX + 'px';
+        particle.style.top = characterCenterY + 'px';
         particle.style.setProperty('--tx', tx + 'px');
         particle.style.setProperty('--ty', ty + 'px');
         particle.style.transform = 'translate(-50%, -50%)';
+        particle.style.zIndex = '10';
         container.appendChild(particle);
     }
 
@@ -719,6 +739,35 @@ function changeTables() {
     typeMessage(tableScreenText, message, 80);
 
     showScreen('table-select-screen');
+}
+
+function changeMode() {
+    // Reset game state
+    gameState.mode = null;
+    gameState.currentQuestion = 0;
+    gameState.score = 0;
+    gameState.streak = 0;
+    gameState.correctAnswers = 0;
+    gameState.wrongAnswers = 0;
+    gameState.playerHits = 0;
+    gameState.opponentHits = 0;
+    gameState.opponentCharacter = null;
+    updateStats();
+
+    // Set random character for start screen
+    const randomCharacter = getRandomCharacter();
+    const startScreenAvatar = document.querySelector('#start-screen .character-avatar');
+    const startScreenName = document.querySelector('#start-screen .character-name');
+    const welcomeMessage = document.getElementById('welcome-message');
+
+    startScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    startScreenName.textContent = randomCharacter.name;
+
+    // Animate welcome message with new character
+    const message = `Hey ${gameState.playerName}! I'm ${randomCharacter.name}! Ready for another challenge? Pick your game mode!`;
+    typeMessage(welcomeMessage, message, 80);
+
+    showScreen('start-screen');
 }
 
 function goBackToStart() {
