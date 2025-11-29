@@ -31,6 +31,9 @@ body {
     align-items: center;
     padding: 20px;
     color: var(--color-white);
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -507,7 +510,11 @@ body {
     transition: all 0.3s ease;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .mode-btn:hover {
@@ -549,7 +556,11 @@ body {
     color: var(--color-purple);
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .table-btn:hover {
@@ -580,7 +591,11 @@ body {
     border-radius: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .btn-primary {
@@ -900,9 +915,13 @@ body {
     color: var(--color-purple);
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive, sans-serif;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     min-height: 60px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .answer-btn:hover:not(:disabled) {
@@ -1056,9 +1075,9 @@ body {
     }
 
     .answer-btn {
-        font-size: 1.2em;
-        padding: 14px 10px;
-        min-height: 50px;
+        font-size: 1.3em;
+        padding: 15px 12px;
+        min-height: 55px;
     }
 
     .answer-grid {
