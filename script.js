@@ -18,9 +18,11 @@ const gameState = {
     timer: null,
     timeLeft: 0,
     answering: false,
+    selectedCharacter: null,
     opponentCharacter: null,
     playerHits: 0,
-    opponentHits: 0
+    opponentHits: 0,
+    muteTTS: false
 };
 
 // ==========================================
@@ -59,6 +61,150 @@ function playSound(soundInput) {
     const audio = new Audio(soundPath);
     audio.volume = 0.7;
     audio.play().catch(e => console.log('Sound not available'));
+}
+
+// ==========================================
+// Text-to-Speech System (Practice Mode)
+// ==========================================
+
+function removeEmojis(text) {
+    // Remove emojis and other Unicode symbols
+    // This regex matches most emoji ranges
+    return text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/gu, '').trim();
+}
+
+function speakText(text) {
+    // Speak in all game modes (Practice, Speed Race, and Boss Battle)
+    if (gameState.mode !== 'practice' && gameState.mode !== 'race' && gameState.mode !== 'boss') {
+        return;
+    }
+
+    // Check if text-to-speech is muted
+    if (gameState.muteTTS) {
+        return;
+    }
+
+    // Check if browser supports speech synthesis
+    if (!('speechSynthesis' in window)) {
+        return;
+    }
+
+    // Remove emojis from text before speaking
+    const textWithoutEmojis = removeEmojis(text);
+    
+    // If text is empty after removing emojis, don't speak
+    if (!textWithoutEmojis) {
+        return;
+    }
+
+    // Cancel any ongoing speech to prevent overlap
+    window.speechSynthesis.cancel();
+
+    // Create speech utterance
+    const utterance = new SpeechSynthesisUtterance(textWithoutEmojis);
+    
+    // Configure voice settings to sound like a kid
+    utterance.rate = 1.15;   // Slightly faster (kids often speak faster)
+    utterance.pitch = 1.6;    // Higher pitch (valid range 0-2, 1.6 sounds more child-like)
+    utterance.volume = 0.85; // Comfortable volume for children
+
+    // Function to set voice and speak
+    const setVoiceAndSpeak = () => {
+        // Try to use a child-friendly voice if available
+        let voices = window.speechSynthesis.getVoices();
+        
+        // If no voices loaded yet, try loading them
+        if (voices.length === 0) {
+            // Trigger voice loading and try again
+            window.speechSynthesis.getVoices();
+            setTimeout(() => {
+                voices = window.speechSynthesis.getVoices();
+                selectAndSpeak(voices);
+            }, 100);
+            return;
+        }
+        
+        selectAndSpeak(voices);
+    };
+    
+    const selectAndSpeak = (voices) => {
+        // Prioritize child voices with more comprehensive search
+        const preferredVoice = voices.find(voice => 
+            voice.name.toLowerCase().includes('child') ||
+            voice.name.toLowerCase().includes('kid') ||
+            voice.name.toLowerCase().includes('young') ||
+            voice.name.toLowerCase().includes('boy') ||
+            voice.name.toLowerCase().includes('girl')
+        ) || voices.find(voice => {
+            const name = voice.name.toLowerCase();
+            // Look for high-pitched female voices that might sound child-like
+            return (name.includes('female') || name.includes('woman')) && 
+                   (name.includes('young') || name.includes('teen') || 
+                    name.includes('samantha') || name.includes('karen') ||
+                    name.includes('susan') || name.includes('zira'));
+        }) || voices.find(voice => {
+            // Some system voices have higher natural pitch
+            const name = voice.name.toLowerCase();
+            return name.includes('samantha') || name.includes('karen') || 
+                   name.includes('susan') || name.includes('zira') ||
+                   name.includes('tessa') || name.includes('veena');
+        });
+        
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+            // If we found a child voice, we can use slightly lower pitch
+            // Otherwise, keep the higher pitch to simulate child voice
+            if (preferredVoice.name.toLowerCase().includes('child') || 
+                preferredVoice.name.toLowerCase().includes('kid')) {
+                utterance.pitch = 1.4; // Child voice already has high pitch
+            }
+        } else {
+            // No child voice found, use higher pitch to simulate it
+            utterance.pitch = 1.7;
+        }
+
+        // Speak the text
+        window.speechSynthesis.speak(utterance);
+    };
+    
+    setVoiceAndSpeak();
+}
+
+// Load voices when available (some browsers need this)
+if ('speechSynthesis' in window) {
+    // Chrome needs voices to be loaded
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            // Voices loaded
+        };
+    }
+}
+
+// ==========================================
+// Mute Toggle Function
+// ==========================================
+
+function updateMuteButtonState() {
+    const muteBtn = document.getElementById('mute-tts-btn');
+    if (muteBtn) {
+        if (gameState.muteTTS) {
+            muteBtn.textContent = '🔇 Unmute Voice';
+            muteBtn.classList.add('muted');
+        } else {
+            muteBtn.textContent = '🔊 Mute Voice';
+            muteBtn.classList.remove('muted');
+        }
+    }
+}
+
+function toggleMuteTTS() {
+    gameState.muteTTS = !gameState.muteTTS;
+    updateMuteButtonState();
+    
+    // Cancel any ongoing speech when muting
+    if (gameState.muteTTS && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
 }
 
 // ==========================================
@@ -220,8 +366,19 @@ function initializeBattle() {
     const battleArena = document.querySelector('.battle-arena');
     if (gameState.mode === 'boss') {
         battleArena.classList.add('active');
+        
+        // Set player character (left side)
+        const playerCharacter = document.getElementById('player-character');
+        if (playerCharacter && gameState.selectedCharacter) {
+            playerCharacter.innerHTML = `<img src="${gameState.selectedCharacter.image}" alt="${gameState.selectedCharacter.name}">`;
+        }
+        
+        // Set opponent character (right side)
         const opponentCharacter = document.getElementById('opponent-character');
-        opponentCharacter.innerHTML = `<img src="${gameState.opponentCharacter.image}" alt="${gameState.opponentCharacter.name}">`;
+        if (opponentCharacter && gameState.opponentCharacter) {
+            opponentCharacter.innerHTML = `<img src="${gameState.opponentCharacter.image}" alt="${gameState.opponentCharacter.name}">`;
+        }
+        
         updateBattleStats();
     } else {
         battleArena.classList.remove('active');
@@ -242,6 +399,19 @@ function shootProjectile(isPlayerShooting) {
 
     container.appendChild(projectile);
 
+    // Trigger attack animation on the shooting character
+    const character = isPlayerShooting
+        ? document.getElementById('player-character')
+        : document.getElementById('opponent-character');
+    
+    if (character) {
+        character.classList.add('attacking');
+        // Remove attacking class after animation completes (0.6s)
+        setTimeout(() => {
+            character.classList.remove('attacking');
+        }, 600);
+    }
+
     // Trigger explosion on impact after projectile travels
     setTimeout(() => {
         createExplosion(isPlayerShooting);
@@ -256,6 +426,9 @@ function hitCharacter(isPlayerHit) {
 
     character.classList.add('hit');
 
+    // Create bullet impact visual effect
+    createBulletImpact(character);
+
     // Screen shake effect
     screenShake();
 
@@ -264,7 +437,35 @@ function hitCharacter(isPlayerHit) {
 
     setTimeout(() => {
         character.classList.remove('hit');
-    }, 500);
+    }, 700);
+}
+
+function createBulletImpact(characterElement) {
+    const impact = document.createElement('div');
+    impact.className = 'bullet-impact';
+    
+    // Position the impact at a random spot on the character (center to upper area)
+    const characterRect = characterElement.getBoundingClientRect();
+    const containerRect = characterElement.closest('.battle-field').getBoundingClientRect();
+    
+    // Random position within character bounds (slightly offset for visual interest)
+    const offsetX = (Math.random() - 0.5) * 30;
+    const offsetY = (Math.random() - 0.5) * 30 - 10; // Slightly higher
+    
+    const centerX = characterRect.left + characterRect.width / 2 - containerRect.left + offsetX;
+    const centerY = characterRect.top + characterRect.height / 2 - containerRect.top + offsetY;
+    
+    impact.style.left = centerX + 'px';
+    impact.style.top = centerY + 'px';
+    impact.style.transform = 'translate(-50%, -50%)';
+    
+    const container = document.querySelector('.battle-field');
+    container.appendChild(impact);
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        impact.remove();
+    }, 400);
 }
 
 function createExplosion(isPlayerShooting) {
@@ -414,14 +615,89 @@ function selectMode(mode) {
 }
 
 // ==========================================
-// Game Logic
+// Character Selection (Boss Mode)
 // ==========================================
 
-function startGame() {
-    if (gameState.selectedTables.length === 0) {
-        alert('Please select at least one times table!');
+function initCharacterSelection() {
+    const grid = document.getElementById('character-grid');
+    grid.innerHTML = '';
+    
+    // Reset selection
+    gameState.selectedCharacter = null;
+    const startBtn = document.getElementById('start-boss-battle-btn');
+    if (startBtn) {
+        startBtn.disabled = true;
+    }
+    
+    // Create character cards for all available characters
+    Object.keys(characters).forEach(charKey => {
+        const char = characters[charKey];
+        const card = document.createElement('div');
+        card.className = 'character-card';
+        card.onclick = () => selectCharacter(charKey);
+        
+        const img = document.createElement('img');
+        img.src = char.image;
+        img.alt = char.name;
+        img.className = 'character-card-image';
+        
+        const name = document.createElement('div');
+        name.className = 'character-card-name';
+        name.textContent = char.name;
+        
+        card.appendChild(img);
+        card.appendChild(name);
+        grid.appendChild(card);
+    });
+    
+    // Set random character for character selection screen
+    const randomCharacter = getRandomCharacter();
+    const charSelectAvatar = document.querySelector('#character-select-screen .character-avatar');
+    const charSelectName = document.querySelector('#character-select-screen .character-name');
+    const charSelectText = document.querySelector('#character-select-screen .character-bubble p');
+    
+    if (charSelectAvatar) {
+        charSelectAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    }
+    if (charSelectName) {
+        charSelectName.textContent = randomCharacter.name;
+    }
+    if (charSelectText) {
+        const message = `Choose your character for the Boss Battle! Who will you fight as?`;
+        typeMessage(charSelectText, message, 80);
+    }
+}
+
+function selectCharacter(characterKey) {
+    // Remove previous selection
+    document.querySelectorAll('.character-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Mark selected card
+    const cards = document.querySelectorAll('.character-card');
+    const charKeys = Object.keys(characters);
+    const index = charKeys.indexOf(characterKey);
+    if (index !== -1 && cards[index]) {
+        cards[index].classList.add('selected');
+    }
+    
+    // Store selection
+    gameState.selectedCharacter = characters[characterKey];
+    
+    // Enable start button
+    const startBtn = document.getElementById('start-boss-battle-btn');
+    if (startBtn) {
+        startBtn.disabled = false;
+    }
+}
+
+function startBossBattle() {
+    if (!gameState.selectedCharacter) {
+        alert('Please select a character!');
         return;
     }
+    
     gameState.currentQuestion = 0;
     gameState.score = 0;
     gameState.streak = 0;
@@ -430,10 +706,67 @@ function startGame() {
     gameState.playerHits = 0;
     gameState.opponentHits = 0;
     gameState.questions = generateQuestions();
+    
+    // Select opponent character (different from player's character)
+    const availableCharacters = Object.values(characters).filter(
+        char => char.name !== gameState.selectedCharacter.name
+    );
+    gameState.opponentCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
+    
+    updateStats();
+    initializeBattle();
+    showScreen('game-screen');
+    updateMuteButtonState();
+    showNextQuestion();
+}
+
+function goBackToTableSelect() {
+    // Set random character for table selection screen
+    const randomCharacter = getRandomCharacter();
+    const tableScreenAvatar = document.querySelector('#table-select-screen .character-avatar');
+    const tableScreenName = document.querySelector('#table-select-screen .character-name');
+    const tableScreenText = document.querySelector('#table-select-screen .character-bubble p');
+    
+    tableScreenAvatar.innerHTML = `<img src="${randomCharacter.image}" alt="${randomCharacter.name}">`;
+    tableScreenName.textContent = randomCharacter.name;
+    const message = `Hey! It's me, ${randomCharacter.name}! Which times tables do you want to practice? You can pick as many as you like!`;
+    typeMessage(tableScreenText, message, 80);
+    
+    showScreen('table-select-screen');
+}
+
+// ==========================================
+// Game Logic
+// ==========================================
+
+function startGame() {
+    if (gameState.selectedTables.length === 0) {
+        alert('Please select at least one times table!');
+        return;
+    }
+    
+    // For Boss Mode, show character selection screen first
+    if (gameState.mode === 'boss') {
+        initCharacterSelection();
+        showScreen('character-select-screen');
+        return;
+    }
+    
+    // For other modes, start game directly
+    gameState.currentQuestion = 0;
+    gameState.score = 0;
+    gameState.streak = 0;
+    gameState.correctAnswers = 0;
+    gameState.wrongAnswers = 0;
+    gameState.playerHits = 0;
+    gameState.opponentHits = 0;
+    gameState.selectedCharacter = null; // Not used in non-boss modes
+    gameState.questions = generateQuestions();
     gameState.opponentCharacter = getRandomCharacter();
     updateStats();
     initializeBattle();
     showScreen('game-screen');
+    updateMuteButtonState();
     showNextQuestion();
 }
 
@@ -493,6 +826,21 @@ function showNextQuestion() {
     const randomMessage = characterMessages.question[Math.floor(Math.random() * characterMessages.question.length)];
     const personalizedMessage = personalizeMessage(randomMessage);
     updateCharacterDisplay(modeCharacter, personalizedMessage);
+    
+    // Read out the question in all game modes (Practice, Speed Race, and Boss Battle)
+    // Convert "5 × 7 = ?" to natural speech format
+    // Use varied phrasing for more natural conversation
+    const questionVariations = [
+        `What is ${q.a} times ${q.b}?`,
+        `${q.a} times ${q.b} equals what?`,
+        `What does ${q.a} times ${q.b} equal?`
+    ];
+    const questionText = questionVariations[Math.floor(Math.random() * questionVariations.length)];
+    
+    // Small delay to ensure UI is ready
+    setTimeout(() => {
+        speakText(questionText);
+    }, 500);
 
     // Animate character - thinking animation
     const avatar = document.getElementById('character-avatar');
@@ -751,6 +1099,7 @@ function changeMode() {
     gameState.wrongAnswers = 0;
     gameState.playerHits = 0;
     gameState.opponentHits = 0;
+    gameState.selectedCharacter = null;
     gameState.opponentCharacter = null;
     updateStats();
 
@@ -797,6 +1146,7 @@ function exitGame() {
     gameState.wrongAnswers = 0;
     gameState.playerHits = 0;
     gameState.opponentHits = 0;
+    gameState.selectedCharacter = null;
     gameState.opponentCharacter = null;
     updateStats();
 
