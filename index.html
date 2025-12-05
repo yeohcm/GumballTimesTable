@@ -98,9 +98,30 @@
             </div>
         </div>
 
+        <!-- Character Selection Screen (Boss Mode only) -->
+        <div id="character-select-screen" class="screen">
+            <div class="character-bubble">
+                <div class="character-avatar">
+                    <img src="assets/gumball.png" alt="Gumball">
+                </div>
+                <div>
+                    <div class="character-name">Gumball</div>
+                    <p>Choose your character for the Boss Battle! Who will you fight as?</p>
+                </div>
+            </div>
+
+            <div class="character-grid" id="character-grid"></div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="start-boss-battle-btn" onclick="startBossBattle()" disabled>Start Battle! ⚔️</button>
+                <button class="btn btn-secondary" onclick="goBackToTableSelect()">Back</button>
+            </div>
+        </div>
+
         <!-- Game Screen -->
         <div id="game-screen" class="screen">
-            <div style="text-align: right; margin-bottom: 20px;">
+            <div style="text-align: right; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <button class="btn btn-secondary" id="mute-tts-btn" onclick="toggleMuteTTS()" style="padding: 8px 20px; font-size: 0.9em;">🔊 Mute Voice</button>
                 <button class="btn btn-secondary" onclick="exitGame()" style="padding: 8px 20px; font-size: 0.9em;">Exit Game ✕</button>
             </div>
 
