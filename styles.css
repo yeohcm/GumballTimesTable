@@ -134,25 +134,62 @@ body {
 
 @keyframes hitKickback {
     0% {
-        transform: translateX(0) scale(1);
+        transform: translateX(0) translateY(0) scale(1) rotateZ(0deg);
+    }
+    15% {
+        transform: translateX(-25px) translateY(-5px) scale(1.1) rotateZ(-8deg);
+    }
+    30% {
+        transform: translateX(-30px) translateY(0) scale(0.95) rotateZ(-5deg);
     }
     50% {
-        transform: translateX(-15px) scale(1.05);
+        transform: translateX(-20px) translateY(5px) scale(1.05) rotateZ(3deg);
+    }
+    70% {
+        transform: translateX(-10px) translateY(0) scale(0.98) rotateZ(-2deg);
     }
     100% {
-        transform: translateX(0) scale(1);
+        transform: translateX(0) translateY(0) scale(1) rotateZ(0deg);
     }
 }
 
 @keyframes hitKickbackRight {
     0% {
-        transform: translateX(0) scale(1);
+        transform: translateX(0) translateY(0) scale(1) rotateZ(0deg);
+    }
+    15% {
+        transform: translateX(25px) translateY(-5px) scale(1.1) rotateZ(8deg);
+    }
+    30% {
+        transform: translateX(30px) translateY(0) scale(0.95) rotateZ(5deg);
     }
     50% {
-        transform: translateX(15px) scale(1.05);
+        transform: translateX(20px) translateY(5px) scale(1.05) rotateZ(-3deg);
+    }
+    70% {
+        transform: translateX(10px) translateY(0) scale(0.98) rotateZ(2deg);
     }
     100% {
-        transform: translateX(0) scale(1);
+        transform: translateX(0) translateY(0) scale(1) rotateZ(0deg);
+    }
+}
+
+@keyframes bulletImpact {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    20% {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
     }
 }
 
@@ -287,6 +324,51 @@ body {
     }
     75% {
         transform: rotateZ(8deg);
+    }
+}
+
+@keyframes idleBattle {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    25% {
+        transform: translateY(-4px) scale(1.02);
+    }
+    50% {
+        transform: translateY(-6px) scale(1.03);
+    }
+    75% {
+        transform: translateY(-3px) scale(1.01);
+    }
+}
+
+@keyframes attackPose {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    30% {
+        transform: translateX(8px) scale(1.1);
+    }
+    60% {
+        transform: translateX(4px) scale(1.05);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes attackPoseRight {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    30% {
+        transform: translateX(-8px) scale(1.1);
+    }
+    60% {
+        transform: translateX(-4px) scale(1.05);
+    }
+    100% {
+        transform: translateX(0) scale(1);
     }
 }
 
@@ -546,6 +628,60 @@ body {
     margin: 40px 0;
 }
 
+/* Character Selection */
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 20px;
+    margin: 40px 0;
+}
+
+.character-card {
+    background: var(--color-white);
+    border: 3px solid var(--color-purple);
+    border-radius: 15px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.character-card:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-color: var(--color-dark-purple);
+}
+
+.character-card.selected {
+    background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-dark-purple) 100%);
+    color: var(--color-white);
+    border-color: var(--color-dark-purple);
+    box-shadow: 0 8px 25px rgba(156, 39, 176, 0.5);
+    transform: scale(1.05);
+}
+
+.character-card-image {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.character-card-name {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--color-dark-purple);
+}
+
+.character-card.selected .character-card-name {
+    color: var(--color-white);
+}
+
 .table-btn {
     padding: 20px;
     font-size: 1.3em;
@@ -618,6 +754,15 @@ body {
 .btn-secondary:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0, 168, 225, 0.4);
+}
+
+.btn-secondary.muted {
+    background: var(--color-red);
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+}
+
+.btn-secondary.muted:hover {
+    box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
 }
 
 /* Battle Arena */
@@ -695,6 +840,7 @@ body {
     justify-content: center;
     position: relative;
     transition: transform 0.3s ease;
+    animation: idleBattle 3s ease-in-out infinite;
 }
 
 .player-character img, .opponent-character img {
@@ -703,12 +849,33 @@ body {
     object-fit: contain;
 }
 
+.player-character.attacking {
+    animation: attackPose 0.6s ease-out;
+}
+
+.opponent-character.attacking {
+    animation: attackPoseRight 0.6s ease-out;
+}
+
 .player-character.hit {
-    animation: hitKickback 0.5s ease-out;
+    animation: hitKickback 0.7s ease-out !important;
 }
 
 .opponent-character.hit {
-    animation: hitKickbackRight 0.5s ease-out;
+    animation: hitKickbackRight 0.7s ease-out !important;
+}
+
+.bullet-impact {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 15;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 200, 0, 0.8) 30%, rgba(255, 100, 0, 0.6) 60%, transparent 100%);
+    box-shadow: 0 0 20px rgba(255, 200, 0, 0.8), 0 0 40px rgba(255, 150, 0, 0.6);
+    animation: bulletImpact 0.4s ease-out forwards;
+    transform-origin: center;
 }
 
 .battle-center {
@@ -1141,6 +1308,25 @@ body {
     .table-grid {
         grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
         gap: 8px;
+    }
+
+    .character-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 12px;
+        margin: 30px 0;
+    }
+
+    .character-card {
+        padding: 12px;
+    }
+
+    .character-card-image {
+        width: 60px;
+        height: 60px;
+    }
+
+    .character-card-name {
+        font-size: 0.8em;
     }
 }
 
