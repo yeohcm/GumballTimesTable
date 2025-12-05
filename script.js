@@ -84,10 +84,10 @@ const characters = {
         name: 'Anais',
         color: '#ff69b4'
     },
-    nicoleWatterson: {
+    rachelwilson: {
         emoji: '🐱',
-        image: 'assets/nicole-watterson.png',
-        name: 'Nicole Watterson',
+        image: 'assets/rachel-wilson.png',
+        name: 'Rachel Wilson',
         color: '#ff1493'
     },
     bananaJoe: {
@@ -120,6 +120,12 @@ const characters = {
         name: 'Bobert',
         color: '#f4eedfff'
     },    
+    carriekrueger: {
+        emoji: '🤖',
+        image: 'assets/carrie-krueger.png',
+        name: 'Carrie Krueger',
+        color: '#f4eedfff'
+    },      
     tobiasWilson: {
         emoji: '🦁',
         image: 'assets/tobias-wilson.png',
