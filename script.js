@@ -22,7 +22,14 @@ const gameState = {
     opponentCharacter: null,
     playerHits: 0,
     opponentHits: 0,
-    muteTTS: false
+    muteTTS: false,
+    // Ninja Mode specific
+    ninjaLives: 3,
+    ninjaCurrentQuestion: null,
+    ninjaSpawnInterval: null,
+    ninjaGameTimer: null,
+    ninjaGameDuration: 60,
+    ninjaFallingCharacters: []
 };
 
 // ==========================================
@@ -74,8 +81,8 @@ function removeEmojis(text) {
 }
 
 function speakText(text) {
-    // Speak in all game modes (Practice, Speed Race, and Boss Battle)
-    if (gameState.mode !== 'practice' && gameState.mode !== 'race' && gameState.mode !== 'boss') {
+    // Speak in all game modes (Practice, Speed Race, Boss Battle, and Ninja Mode)
+    if (gameState.mode !== 'practice' && gameState.mode !== 'race' && gameState.mode !== 'boss' && gameState.mode !== 'ninja') {
         return;
     }
 
@@ -602,9 +609,16 @@ function selectMode(mode) {
     const modes = {
         practice: 10,
         race: 15,
-        boss: 20
+        boss: 20,
+        ninja: 0 // Ninja mode uses time-based gameplay instead
     };
     gameState.totalQuestions = modes[mode];
+
+    // For Ninja Mode, go directly to game without table selection
+    if (mode === 'ninja') {
+        startNinjaMode();
+        return;
+    }
 
     // Set random character for table selection screen
     const randomCharacter = getRandomCharacter();
@@ -1144,6 +1158,23 @@ function goBackToStart() {
 
 function exitGame() {
     if (gameState.timer) clearInterval(gameState.timer);
+
+    // Clean up Ninja Mode if active
+    if (gameState.mode === 'ninja') {
+        if (gameState.ninjaSpawnInterval) {
+            clearInterval(gameState.ninjaSpawnInterval);
+            gameState.ninjaSpawnInterval = null;
+        }
+        if (gameState.ninjaGameTimer) {
+            clearInterval(gameState.ninjaGameTimer);
+            gameState.ninjaGameTimer = null;
+        }
+        gameState.ninjaFallingCharacters.forEach(char => {
+            if (char.parentNode) char.remove();
+        });
+        gameState.ninjaFallingCharacters = [];
+    }
+
     gameState.mode = null;
     gameState.currentQuestion = 0;
     gameState.score = 0;
@@ -1154,6 +1185,7 @@ function exitGame() {
     gameState.opponentHits = 0;
     gameState.selectedCharacter = null;
     gameState.opponentCharacter = null;
+    gameState.ninjaLives = 3;
     updateStats();
 
     // Set random character for start screen when exiting
@@ -1206,6 +1238,303 @@ function startWithName() {
     setTimeout(() => {
         document.querySelector('.mode-btn').focus();
     }, 200);
+}
+
+// ==========================================
+// Ninja Mode
+// ==========================================
+
+function startNinjaMode() {
+    // Reset ninja mode state
+    gameState.score = 0;
+    gameState.correctAnswers = 0;
+    gameState.wrongAnswers = 0;
+    gameState.ninjaLives = 3;
+    gameState.ninjaFallingCharacters = [];
+    gameState.timeLeft = gameState.ninjaGameDuration;
+
+    // Clear any existing intervals
+    if (gameState.ninjaSpawnInterval) clearInterval(gameState.ninjaSpawnInterval);
+    if (gameState.ninjaGameTimer) clearInterval(gameState.ninjaGameTimer);
+
+    updateStats();
+    updateNinjaLives();
+    showScreen('ninja-screen');
+    updateMuteButtonState();
+
+    // Start game countdown
+    startNinjaTimer();
+
+    // Generate first question
+    generateNewNinjaQuestion();
+
+    // Start spawning characters
+    gameState.ninjaSpawnInterval = setInterval(() => {
+        spawnFallingCharacter();
+    }, 1800); // Spawn new character every 1.8 seconds
+}
+
+function startNinjaTimer() {
+    updateNinjaTimerDisplay();
+
+    gameState.ninjaGameTimer = setInterval(() => {
+        gameState.timeLeft--;
+        updateNinjaTimerDisplay();
+
+        if (gameState.timeLeft <= 0) {
+            endNinjaMode();
+        }
+    }, 1000);
+}
+
+function updateNinjaTimerDisplay() {
+    const percentage = (gameState.timeLeft / gameState.ninjaGameDuration) * 100;
+    document.getElementById('ninja-timer-fill').style.width = percentage + '%';
+    document.getElementById('ninja-timer-text').textContent = gameState.timeLeft;
+}
+
+function updateNinjaLives() {
+    const livesDisplay = document.getElementById('ninja-lives');
+    const hearts = '❤️'.repeat(gameState.ninjaLives);
+    const emptyHearts = '🖤'.repeat(3 - gameState.ninjaLives);
+    livesDisplay.textContent = hearts + emptyHearts;
+}
+
+function generateNewNinjaQuestion() {
+    const table = gameState.selectedTables[Math.floor(Math.random() * gameState.selectedTables.length)];
+    const multiplier = Math.floor(Math.random() * 12) + 1;
+    const correctAnswer = table * multiplier;
+
+    gameState.ninjaCurrentQuestion = {
+        a: table,
+        b: multiplier,
+        correctAnswer: correctAnswer,
+        answers: generateAnswers(correctAnswer)
+    };
+
+    // Update question display
+    document.getElementById('ninja-question').textContent = `${table} × ${multiplier} = ?`;
+
+    // Speak the question
+    const questionVariations = [
+        `What is ${table} times ${multiplier}?`,
+        `${table} times ${multiplier} equals what?`,
+        `What does ${table} times ${multiplier} equal?`
+    ];
+    const questionText = questionVariations[Math.floor(Math.random() * questionVariations.length)];
+    setTimeout(() => speakText(questionText), 300);
+}
+
+function spawnFallingCharacter() {
+    if (!gameState.ninjaCurrentQuestion || gameState.ninjaLives <= 0) return;
+
+    // Pick a random answer from current question
+    const answers = gameState.ninjaCurrentQuestion.answers;
+    const answer = answers[Math.floor(Math.random() * answers.length)];
+    const isCorrect = answer === gameState.ninjaCurrentQuestion.correctAnswer;
+
+    // Pick random character
+    const characterKeys = Object.keys(characters);
+    const randomCharKey = characterKeys[Math.floor(Math.random() * characterKeys.length)];
+    const character = characters[randomCharKey];
+
+    // Create falling character element
+    const container = document.getElementById('falling-characters-container');
+    const fallingChar = document.createElement('div');
+    fallingChar.className = 'falling-character';
+
+    // Random horizontal position
+    const leftPosition = Math.random() * 80 + 10; // 10% to 90%
+    fallingChar.style.left = leftPosition + '%';
+
+    // Add character image
+    const img = document.createElement('img');
+    img.src = character.image;
+    img.alt = character.name;
+    img.className = 'falling-character-img';
+
+    // Add answer text
+    const answerDiv = document.createElement('div');
+    answerDiv.className = 'falling-character-answer';
+    answerDiv.textContent = answer;
+
+    fallingChar.appendChild(img);
+    fallingChar.appendChild(answerDiv);
+
+    // Random fall duration (3-5 seconds)
+    const fallDuration = 3 + Math.random() * 2;
+    fallingChar.style.animation = `fallStraight ${fallDuration}s linear`;
+
+    // Store data
+    fallingChar.dataset.answer = answer;
+    fallingChar.dataset.isCorrect = isCorrect;
+
+    // Add click handler
+    fallingChar.onclick = (e) => handleCharacterClick(e, fallingChar, answer, isCorrect);
+
+    container.appendChild(fallingChar);
+    gameState.ninjaFallingCharacters.push(fallingChar);
+
+    // Remove character when it reaches bottom
+    setTimeout(() => {
+        if (fallingChar.parentNode) {
+            // Character wasn't clicked - lose a life only if it was the correct answer
+            if (isCorrect && gameState.ninjaLives > 0) {
+                loseLife();
+            }
+            fallingChar.remove();
+            const index = gameState.ninjaFallingCharacters.indexOf(fallingChar);
+            if (index > -1) {
+                gameState.ninjaFallingCharacters.splice(index, 1);
+            }
+        }
+    }, fallDuration * 1000);
+}
+
+function handleCharacterClick(event, fallingChar, answer, isCorrect) {
+    // Prevent multiple clicks
+    if (!fallingChar.onclick) return;
+    fallingChar.onclick = null;
+
+    const rect = fallingChar.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    // Create slice effect
+    createSliceEffect(x, y);
+
+    if (isCorrect) {
+        // Correct answer!
+        gameState.correctAnswers++;
+        gameState.streak++;
+        const basePoints = 15;
+        const bonus = Math.min(gameState.streak, 5) * 5;
+        const points = basePoints + bonus;
+        gameState.score += points;
+
+        playSound(sounds.correct);
+        showScorePopup(x, y, `+${points}`);
+
+        // Remove character
+        fallingChar.style.animation = 'none';
+        fallingChar.style.opacity = '0';
+        setTimeout(() => {
+            if (fallingChar.parentNode) fallingChar.remove();
+        }, 100);
+
+        // Generate new question
+        generateNewNinjaQuestion();
+
+        updateStats();
+    } else {
+        // Wrong answer - lose a life
+        gameState.wrongAnswers++;
+        gameState.streak = 0;
+
+        playSound(sounds.wrong);
+        showScorePopup(x, y, '✗', '#f44336');
+
+        // Remove character
+        fallingChar.style.animation = 'none';
+        fallingChar.style.opacity = '0';
+        setTimeout(() => {
+            if (fallingChar.parentNode) fallingChar.remove();
+        }, 100);
+
+        loseLife();
+        updateStats();
+    }
+
+    // Remove from array
+    const index = gameState.ninjaFallingCharacters.indexOf(fallingChar);
+    if (index > -1) {
+        gameState.ninjaFallingCharacters.splice(index, 1);
+    }
+}
+
+function createSliceEffect(x, y) {
+    const container = document.getElementById('slice-effects-container');
+
+    // Create slash line
+    const slash = document.createElement('div');
+    slash.className = 'slice-effect';
+    slash.style.left = x + 'px';
+    slash.style.top = y + 'px';
+    slash.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`;
+    container.appendChild(slash);
+
+    setTimeout(() => slash.remove(), 400);
+
+    // Create particles
+    const particleCount = 8;
+    for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * Math.PI * 2;
+        const distance = 40 + Math.random() * 30;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+
+        const particle = document.createElement('div');
+        particle.className = 'slice-particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        container.appendChild(particle);
+
+        setTimeout(() => particle.remove(), 600);
+    }
+}
+
+function showScorePopup(x, y, text, color = '#4caf50') {
+    const popup = document.createElement('div');
+    popup.className = 'score-popup';
+    popup.textContent = text;
+    popup.style.left = x + 'px';
+    popup.style.top = y + 'px';
+    popup.style.color = color;
+    popup.style.transform = 'translate(-50%, -50%)';
+
+    document.getElementById('slice-effects-container').appendChild(popup);
+
+    setTimeout(() => popup.remove(), 1000);
+}
+
+function loseLife() {
+    gameState.ninjaLives--;
+    updateNinjaLives();
+
+    if (gameState.ninjaLives <= 0) {
+        endNinjaMode();
+    }
+}
+
+function endNinjaMode() {
+    // Clear intervals
+    if (gameState.ninjaSpawnInterval) {
+        clearInterval(gameState.ninjaSpawnInterval);
+        gameState.ninjaSpawnInterval = null;
+    }
+    if (gameState.ninjaGameTimer) {
+        clearInterval(gameState.ninjaGameTimer);
+        gameState.ninjaGameTimer = null;
+    }
+
+    // Clear falling characters
+    gameState.ninjaFallingCharacters.forEach(char => {
+        if (char.parentNode) char.remove();
+    });
+    gameState.ninjaFallingCharacters = [];
+
+    // Clear containers
+    document.getElementById('falling-characters-container').innerHTML = '';
+    document.getElementById('slice-effects-container').innerHTML = '';
+
+    // Set total questions for results calculation
+    gameState.totalQuestions = gameState.correctAnswers + gameState.wrongAnswers;
+    gameState.currentQuestion = gameState.totalQuestions;
+
+    // Show results
+    showResults();
 }
 
 // ==========================================

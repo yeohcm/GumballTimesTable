@@ -75,6 +75,9 @@
                 <button class="mode-btn boss-btn" onclick="selectMode('boss')">
                     👾 Boss Battle<br><small>20 questions, 8 sec each</small>
                 </button>
+                <button class="mode-btn ninja-btn" onclick="selectMode('ninja')">
+                    🥷 Ninja Mode<br><small>Slice falling characters!</small>
+                </button>
             </div>
         </div>
 
@@ -183,6 +186,33 @@
             <div class="answer-grid" id="answer-grid"></div>
 
             <div class="encouragement" id="encouragement"></div>
+        </div>
+
+        <!-- Ninja Mode Game Screen -->
+        <div id="ninja-screen" class="screen">
+            <div style="text-align: right; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <button class="btn btn-secondary" id="mute-tts-ninja-btn" onclick="toggleMuteTTS()" style="padding: 8px 20px; font-size: 0.9em;">🔊 Mute Voice</button>
+                <button class="btn btn-secondary" onclick="exitGame()" style="padding: 8px 20px; font-size: 0.9em;">Exit Game ✕</button>
+            </div>
+
+            <div id="ninja-timer-container" class="timer-bar" style="display: block;">
+                <div class="timer-fill" id="ninja-timer-fill"></div>
+                <div class="timer-text" id="ninja-timer-text">60</div>
+            </div>
+
+            <div class="ninja-game-area" id="ninja-game-area">
+                <div class="ninja-instructions">
+                    <h3>🥷 Slice the correct answer!</h3>
+                    <p id="ninja-question">Ready?</p>
+                </div>
+                <div class="falling-characters-container" id="falling-characters-container"></div>
+                <div class="slice-effects-container" id="slice-effects-container"></div>
+            </div>
+
+            <div class="ninja-lives-container">
+                <div class="ninja-lives-label">Lives:</div>
+                <div class="ninja-lives" id="ninja-lives">❤️❤️❤️</div>
+            </div>
         </div>
 
         <!-- Results Screen -->
