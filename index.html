@@ -191,7 +191,9 @@
         <!-- Ninja Mode Game Screen -->
         <div id="ninja-screen" class="screen">
             <div style="text-align: right; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <button class="btn btn-secondary" id="mute-tts-ninja-btn" onclick="toggleMuteTTS()" style="padding: 8px 20px; font-size: 0.9em;">🔊 Mute Voice</button>
+                <div style="font-size: 0.9em; color: var(--color-dark-purple); font-weight: bold;">
+                    Use ← → Arrow Keys or Touch to Move!
+                </div>
                 <button class="btn btn-secondary" onclick="exitGame()" style="padding: 8px 20px; font-size: 0.9em;">Exit Game ✕</button>
             </div>
 
@@ -202,16 +204,13 @@
 
             <div class="ninja-game-area" id="ninja-game-area">
                 <div class="ninja-instructions">
-                    <h3>🥷 Slice the correct answer!</h3>
-                    <p id="ninja-question">Ready?</p>
+                    <h3>🧺 Catch the Characters!</h3>
+                    <p>Save them from falling! Avoid the bombs! 💣</p>
                 </div>
                 <div class="falling-characters-container" id="falling-characters-container"></div>
-                <div class="slice-effects-container" id="slice-effects-container"></div>
-            </div>
-
-            <div class="ninja-lives-container">
-                <div class="ninja-lives-label">Lives:</div>
-                <div class="ninja-lives" id="ninja-lives">❤️❤️❤️</div>
+                <div class="basket-container" id="basket-container">
+                    <div class="basket" id="basket">🧺</div>
+                </div>
             </div>
         </div>
 

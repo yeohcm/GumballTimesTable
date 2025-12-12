@@ -1169,6 +1169,14 @@ function exitGame() {
             clearInterval(gameState.ninjaGameTimer);
             gameState.ninjaGameTimer = null;
         }
+        // Remove event listeners
+        document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('keyup', handleKeyUp);
+        const gameArea = document.getElementById('ninja-game-area');
+        if (gameArea) {
+            gameArea.removeEventListener('touchmove', handleTouchMove);
+            gameArea.removeEventListener('mousemove', handleMouseMove);
+        }
         gameState.ninjaFallingCharacters.forEach(char => {
             if (char.parentNode) char.remove();
         });
@@ -1241,37 +1249,45 @@ function startWithName() {
 }
 
 // ==========================================
-// Ninja Mode
+// Ninja Mode - Catching Game
 // ==========================================
+
+let basketPosition = 50; // Percentage position (0-100)
+let keysPressed = {};
 
 function startNinjaMode() {
     // Reset ninja mode state
     gameState.score = 0;
     gameState.correctAnswers = 0;
     gameState.wrongAnswers = 0;
-    gameState.ninjaLives = 3;
     gameState.ninjaFallingCharacters = [];
     gameState.timeLeft = gameState.ninjaGameDuration;
+    basketPosition = 50;
 
     // Clear any existing intervals
     if (gameState.ninjaSpawnInterval) clearInterval(gameState.ninjaSpawnInterval);
     if (gameState.ninjaGameTimer) clearInterval(gameState.ninjaGameTimer);
 
     updateStats();
-    updateNinjaLives();
     showScreen('ninja-screen');
-    updateMuteButtonState();
+
+    // Initialize basket position
+    const basket = document.getElementById('basket');
+    basket.style.left = basketPosition + '%';
+
+    // Setup controls
+    setupNinjaControls();
 
     // Start game countdown
     startNinjaTimer();
 
-    // Generate first question
-    generateNewNinjaQuestion();
-
-    // Start spawning characters
+    // Start spawning characters and bombs
     gameState.ninjaSpawnInterval = setInterval(() => {
-        spawnFallingCharacter();
-    }, 1800); // Spawn new character every 1.8 seconds
+        spawnFallingItem();
+    }, 1200); // Spawn new item every 1.2 seconds
+
+    // Start game loop for collision detection
+    startGameLoop();
 }
 
 function startNinjaTimer() {
@@ -1293,219 +1309,230 @@ function updateNinjaTimerDisplay() {
     document.getElementById('ninja-timer-text').textContent = gameState.timeLeft;
 }
 
-function updateNinjaLives() {
-    const livesDisplay = document.getElementById('ninja-lives');
-    const hearts = '❤️'.repeat(gameState.ninjaLives);
-    const emptyHearts = '🖤'.repeat(3 - gameState.ninjaLives);
-    livesDisplay.textContent = hearts + emptyHearts;
+function setupNinjaControls() {
+    // Keyboard controls
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    // Touch/Mouse controls for mobile
+    const gameArea = document.getElementById('ninja-game-area');
+    gameArea.addEventListener('touchmove', handleTouchMove);
+    gameArea.addEventListener('mousemove', handleMouseMove);
 }
 
-function generateNewNinjaQuestion() {
-    const table = gameState.selectedTables[Math.floor(Math.random() * gameState.selectedTables.length)];
-    const multiplier = Math.floor(Math.random() * 12) + 1;
-    const correctAnswer = table * multiplier;
-
-    gameState.ninjaCurrentQuestion = {
-        a: table,
-        b: multiplier,
-        correctAnswer: correctAnswer,
-        answers: generateAnswers(correctAnswer)
-    };
-
-    // Update question display
-    document.getElementById('ninja-question').textContent = `${table} × ${multiplier} = ?`;
-
-    // Speak the question
-    const questionVariations = [
-        `What is ${table} times ${multiplier}?`,
-        `${table} times ${multiplier} equals what?`,
-        `What does ${table} times ${multiplier} equal?`
-    ];
-    const questionText = questionVariations[Math.floor(Math.random() * questionVariations.length)];
-    setTimeout(() => speakText(questionText), 300);
+function handleKeyDown(e) {
+    if (gameState.mode !== 'ninja') return;
+    keysPressed[e.key] = true;
 }
 
-function spawnFallingCharacter() {
-    if (!gameState.ninjaCurrentQuestion || gameState.ninjaLives <= 0) return;
+function handleKeyUp(e) {
+    if (gameState.mode !== 'ninja') return;
+    keysPressed[e.key] = false;
+}
 
-    // Pick a random answer from current question
-    const answers = gameState.ninjaCurrentQuestion.answers;
-    const answer = answers[Math.floor(Math.random() * answers.length)];
-    const isCorrect = answer === gameState.ninjaCurrentQuestion.correctAnswer;
+function handleTouchMove(e) {
+    if (gameState.mode !== 'ninja') return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const gameArea = document.getElementById('ninja-game-area');
+    const rect = gameArea.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    basketPosition = Math.max(10, Math.min(90, percentage));
+    updateBasketPosition();
+}
 
-    // Pick random character
-    const characterKeys = Object.keys(characters);
-    const randomCharKey = characterKeys[Math.floor(Math.random() * characterKeys.length)];
-    const character = characters[randomCharKey];
+function handleMouseMove(e) {
+    if (gameState.mode !== 'ninja') return;
+    const gameArea = document.getElementById('ninja-game-area');
+    const rect = gameArea.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    basketPosition = Math.max(10, Math.min(90, percentage));
+    updateBasketPosition();
+}
 
-    // Create falling character element
+function updateBasketPosition() {
+    const basket = document.getElementById('basket');
+    basket.style.left = basketPosition + '%';
+}
+
+function startGameLoop() {
+    const moveSpeed = 1.5; // Speed of basket movement
+
+    function gameLoop() {
+        if (gameState.mode !== 'ninja') return;
+
+        // Handle keyboard movement
+        if (keysPressed['ArrowLeft']) {
+            basketPosition = Math.max(10, basketPosition - moveSpeed);
+            updateBasketPosition();
+        }
+        if (keysPressed['ArrowRight']) {
+            basketPosition = Math.min(90, basketPosition + moveSpeed);
+            updateBasketPosition();
+        }
+
+        // Check collisions
+        checkCollisions();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+}
+
+function spawnFallingItem() {
+    if (gameState.timeLeft <= 0) return;
+
     const container = document.getElementById('falling-characters-container');
-    const fallingChar = document.createElement('div');
-    fallingChar.className = 'falling-character';
+    const isBomb = Math.random() < 0.25; // 25% chance of bomb
 
     // Random horizontal position
     const leftPosition = Math.random() * 80 + 10; // 10% to 90%
-    fallingChar.style.left = leftPosition + '%';
 
-    // Add character image
-    const img = document.createElement('img');
-    img.src = character.image;
-    img.alt = character.name;
-    img.className = 'falling-character-img';
+    if (isBomb) {
+        // Create falling bomb
+        const bomb = document.createElement('div');
+        bomb.className = 'falling-bomb';
+        bomb.textContent = '💣';
+        bomb.style.left = leftPosition + '%';
+        bomb.dataset.type = 'bomb';
 
-    // Add answer text
-    const answerDiv = document.createElement('div');
-    answerDiv.className = 'falling-character-answer';
-    answerDiv.textContent = answer;
+        // Random fall duration (3-5 seconds)
+        const fallDuration = 3 + Math.random() * 2;
+        bomb.style.animation = `fallStraight ${fallDuration}s linear`;
 
-    fallingChar.appendChild(img);
-    fallingChar.appendChild(answerDiv);
+        container.appendChild(bomb);
+        gameState.ninjaFallingCharacters.push(bomb);
 
-    // Random fall duration (3-5 seconds)
-    const fallDuration = 3 + Math.random() * 2;
-    fallingChar.style.animation = `fallStraight ${fallDuration}s linear`;
-
-    // Store data
-    fallingChar.dataset.answer = answer;
-    fallingChar.dataset.isCorrect = isCorrect;
-
-    // Add click handler
-    fallingChar.onclick = (e) => handleCharacterClick(e, fallingChar, answer, isCorrect);
-
-    container.appendChild(fallingChar);
-    gameState.ninjaFallingCharacters.push(fallingChar);
-
-    // Remove character when it reaches bottom
-    setTimeout(() => {
-        if (fallingChar.parentNode) {
-            // Character wasn't clicked - lose a life only if it was the correct answer
-            if (isCorrect && gameState.ninjaLives > 0) {
-                loseLife();
-            }
-            fallingChar.remove();
-            const index = gameState.ninjaFallingCharacters.indexOf(fallingChar);
-            if (index > -1) {
-                gameState.ninjaFallingCharacters.splice(index, 1);
-            }
-        }
-    }, fallDuration * 1000);
-}
-
-function handleCharacterClick(event, fallingChar, answer, isCorrect) {
-    // Prevent multiple clicks
-    if (!fallingChar.onclick) return;
-    fallingChar.onclick = null;
-
-    const rect = fallingChar.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-
-    // Create slice effect
-    createSliceEffect(x, y);
-
-    if (isCorrect) {
-        // Correct answer!
-        gameState.correctAnswers++;
-        gameState.streak++;
-        const basePoints = 15;
-        const bonus = Math.min(gameState.streak, 5) * 5;
-        const points = basePoints + bonus;
-        gameState.score += points;
-
-        playSound(sounds.correct);
-        showScorePopup(x, y, `+${points}`);
-
-        // Remove character
-        fallingChar.style.animation = 'none';
-        fallingChar.style.opacity = '0';
+        // Remove bomb when it reaches bottom
         setTimeout(() => {
-            if (fallingChar.parentNode) fallingChar.remove();
-        }, 100);
-
-        // Generate new question
-        generateNewNinjaQuestion();
-
-        updateStats();
+            if (bomb.parentNode && !bomb.dataset.caught) {
+                bomb.remove();
+                const index = gameState.ninjaFallingCharacters.indexOf(bomb);
+                if (index > -1) {
+                    gameState.ninjaFallingCharacters.splice(index, 1);
+                }
+            }
+        }, fallDuration * 1000);
     } else {
-        // Wrong answer - lose a life
-        gameState.wrongAnswers++;
-        gameState.streak = 0;
+        // Create falling character
+        const characterKeys = Object.keys(characters);
+        const randomCharKey = characterKeys[Math.floor(Math.random() * characterKeys.length)];
+        const character = characters[randomCharKey];
 
-        playSound(sounds.wrong);
-        showScorePopup(x, y, '✗', '#f44336');
+        const fallingChar = document.createElement('div');
+        fallingChar.className = 'falling-character';
+        fallingChar.style.left = leftPosition + '%';
+        fallingChar.dataset.type = 'character';
 
-        // Remove character
-        fallingChar.style.animation = 'none';
-        fallingChar.style.opacity = '0';
+        // Add character image
+        const img = document.createElement('img');
+        img.src = character.image;
+        img.alt = character.name;
+        img.className = 'falling-character-img';
+        fallingChar.appendChild(img);
+
+        // Random fall duration (3-5 seconds)
+        const fallDuration = 3 + Math.random() * 2;
+        fallingChar.style.animation = `fallStraight ${fallDuration}s linear`;
+
+        container.appendChild(fallingChar);
+        gameState.ninjaFallingCharacters.push(fallingChar);
+
+        // Remove character when it reaches bottom (missed)
         setTimeout(() => {
-            if (fallingChar.parentNode) fallingChar.remove();
-        }, 100);
-
-        loseLife();
-        updateStats();
-    }
-
-    // Remove from array
-    const index = gameState.ninjaFallingCharacters.indexOf(fallingChar);
-    if (index > -1) {
-        gameState.ninjaFallingCharacters.splice(index, 1);
-    }
-}
-
-function createSliceEffect(x, y) {
-    const container = document.getElementById('slice-effects-container');
-
-    // Create slash line
-    const slash = document.createElement('div');
-    slash.className = 'slice-effect';
-    slash.style.left = x + 'px';
-    slash.style.top = y + 'px';
-    slash.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`;
-    container.appendChild(slash);
-
-    setTimeout(() => slash.remove(), 400);
-
-    // Create particles
-    const particleCount = 8;
-    for (let i = 0; i < particleCount; i++) {
-        const angle = (i / particleCount) * Math.PI * 2;
-        const distance = 40 + Math.random() * 30;
-        const tx = Math.cos(angle) * distance;
-        const ty = Math.sin(angle) * distance;
-
-        const particle = document.createElement('div');
-        particle.className = 'slice-particle';
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
-        particle.style.setProperty('--tx', tx + 'px');
-        particle.style.setProperty('--ty', ty + 'px');
-        container.appendChild(particle);
-
-        setTimeout(() => particle.remove(), 600);
+            if (fallingChar.parentNode && !fallingChar.dataset.caught) {
+                // Missed character - lose 1 point
+                gameState.score = Math.max(0, gameState.score - 1);
+                gameState.wrongAnswers++;
+                showScorePopup(fallingChar, '-1', '#f44336');
+                fallingChar.remove();
+                const index = gameState.ninjaFallingCharacters.indexOf(fallingChar);
+                if (index > -1) {
+                    gameState.ninjaFallingCharacters.splice(index, 1);
+                }
+                updateStats();
+            }
+        }, fallDuration * 1000);
     }
 }
 
-function showScorePopup(x, y, text, color = '#4caf50') {
+function checkCollisions() {
+    const basket = document.getElementById('basket');
+    const basketRect = basket.getBoundingClientRect();
+
+    gameState.ninjaFallingCharacters.forEach((item, index) => {
+        if (item.dataset.caught) return;
+
+        const itemRect = item.getBoundingClientRect();
+
+        // Check if item overlaps with basket
+        if (
+            itemRect.bottom >= basketRect.top &&
+            itemRect.top <= basketRect.bottom &&
+            itemRect.right >= basketRect.left &&
+            itemRect.left <= basketRect.right
+        ) {
+            // Caught!
+            item.dataset.caught = 'true';
+            catchItem(item);
+        }
+    });
+}
+
+function catchItem(item) {
+    const isBomb = item.dataset.type === 'bomb';
+
+    if (isBomb) {
+        // Caught a bomb - lose 2 points
+        gameState.score = Math.max(0, gameState.score - 2);
+        gameState.wrongAnswers++;
+        playSound(sounds.wrong);
+        showScorePopup(item, '-2', '#f44336');
+    } else {
+        // Caught a character - gain 1 point
+        gameState.score += 1;
+        gameState.correctAnswers++;
+        playSound(sounds.correct);
+        showScorePopup(item, '+1', '#4caf50');
+    }
+
+    // Remove item with fade effect
+    item.style.animation = 'none';
+    item.style.opacity = '0';
+    item.style.transition = 'opacity 0.3s';
+
+    setTimeout(() => {
+        if (item.parentNode) item.remove();
+        const index = gameState.ninjaFallingCharacters.indexOf(item);
+        if (index > -1) {
+            gameState.ninjaFallingCharacters.splice(index, 1);
+        }
+    }, 300);
+
+    updateStats();
+}
+
+function showScorePopup(item, text, color = '#4caf50') {
+    const rect = item.getBoundingClientRect();
+    const gameArea = document.getElementById('ninja-game-area');
+    const gameRect = gameArea.getBoundingClientRect();
+
     const popup = document.createElement('div');
     popup.className = 'score-popup';
     popup.textContent = text;
-    popup.style.left = x + 'px';
-    popup.style.top = y + 'px';
+    popup.style.position = 'absolute';
+    popup.style.left = (rect.left + rect.width / 2 - gameRect.left) + 'px';
+    popup.style.top = (rect.top + rect.height / 2 - gameRect.top) + 'px';
     popup.style.color = color;
     popup.style.transform = 'translate(-50%, -50%)';
+    popup.style.pointerEvents = 'none';
 
-    document.getElementById('slice-effects-container').appendChild(popup);
+    gameArea.appendChild(popup);
 
     setTimeout(() => popup.remove(), 1000);
-}
-
-function loseLife() {
-    gameState.ninjaLives--;
-    updateNinjaLives();
-
-    if (gameState.ninjaLives <= 0) {
-        endNinjaMode();
-    }
 }
 
 function endNinjaMode() {
@@ -1519,15 +1546,24 @@ function endNinjaMode() {
         gameState.ninjaGameTimer = null;
     }
 
+    // Remove event listeners
+    document.removeEventListener('keydown', handleKeyDown);
+    document.removeEventListener('keyup', handleKeyUp);
+    const gameArea = document.getElementById('ninja-game-area');
+    if (gameArea) {
+        gameArea.removeEventListener('touchmove', handleTouchMove);
+        gameArea.removeEventListener('mousemove', handleMouseMove);
+    }
+
     // Clear falling characters
     gameState.ninjaFallingCharacters.forEach(char => {
         if (char.parentNode) char.remove();
     });
     gameState.ninjaFallingCharacters = [];
 
-    // Clear containers
-    document.getElementById('falling-characters-container').innerHTML = '';
-    document.getElementById('slice-effects-container').innerHTML = '';
+    // Clear container
+    const container = document.getElementById('falling-characters-container');
+    if (container) container.innerHTML = '';
 
     // Set total questions for results calculation
     gameState.totalQuestions = gameState.correctAnswers + gameState.wrongAnswers;

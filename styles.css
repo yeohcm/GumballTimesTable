@@ -1179,39 +1179,68 @@ body {
 .falling-character {
     position: absolute;
     top: -100px;
-    width: 100px;
-    height: 120px;
-    cursor: pointer;
-    pointer-events: all;
+    width: 80px;
+    height: 80px;
+    pointer-events: none;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease;
     z-index: 5;
 }
 
-.falling-character:hover {
-    transform: scale(1.1);
-}
-
 .falling-character-img {
-    width: 80px;
-    height: 80px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
-.falling-character-answer {
-    background: var(--color-white);
-    border: 2px solid var(--color-purple);
-    border-radius: 12px;
-    padding: 8px 15px;
-    font-size: 1.3em;
-    font-weight: bold;
-    color: var(--color-purple);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    margin-top: 5px;
+.falling-bomb {
+    position: absolute;
+    top: -100px;
+    width: 60px;
+    height: 60px;
+    font-size: 3em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+    animation: bombSpin 1s linear infinite;
+}
+
+@keyframes bombSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.basket-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.basket {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 80px;
+    font-size: 5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: left 0.1s ease-out;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 @keyframes fall {
@@ -1404,22 +1433,20 @@ body {
     }
 
     .falling-character {
-        width: 80px;
-        height: 100px;
-    }
-
-    .falling-character-img {
         width: 60px;
         height: 60px;
     }
 
-    .falling-character-answer {
-        font-size: 1.1em;
-        padding: 6px 12px;
+    .falling-bomb {
+        width: 50px;
+        height: 50px;
+        font-size: 2.5em;
     }
 
-    .ninja-lives {
-        font-size: 1.4em;
+    .basket {
+        width: 80px;
+        height: 60px;
+        font-size: 4em;
     }
 
     .container {
