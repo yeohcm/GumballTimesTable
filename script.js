@@ -22,7 +22,14 @@ const gameState = {
     opponentCharacter: null,
     playerHits: 0,
     opponentHits: 0,
-    muteTTS: false
+    muteTTS: false,
+    // Ninja Mode specific
+    ninjaLives: 3,
+    ninjaCurrentQuestion: null,
+    ninjaSpawnInterval: null,
+    ninjaGameTimer: null,
+    ninjaGameDuration: 60,
+    ninjaFallingCharacters: []
 };
 
 // ==========================================
@@ -74,8 +81,8 @@ function removeEmojis(text) {
 }
 
 function speakText(text) {
-    // Speak in all game modes (Practice, Speed Race, and Boss Battle)
-    if (gameState.mode !== 'practice' && gameState.mode !== 'race' && gameState.mode !== 'boss') {
+    // Speak in all game modes (Practice, Speed Race, Boss Battle, and Ninja Mode)
+    if (gameState.mode !== 'practice' && gameState.mode !== 'race' && gameState.mode !== 'boss' && gameState.mode !== 'ninja') {
         return;
     }
 
@@ -602,9 +609,16 @@ function selectMode(mode) {
     const modes = {
         practice: 10,
         race: 15,
-        boss: 20
+        boss: 20,
+        ninja: 0 // Ninja mode uses time-based gameplay instead
     };
     gameState.totalQuestions = modes[mode];
+
+    // For Ninja Mode, go directly to game without table selection
+    if (mode === 'ninja') {
+        startNinjaMode();
+        return;
+    }
 
     // Set random character for table selection screen
     const randomCharacter = getRandomCharacter();
@@ -1077,7 +1091,12 @@ function showResults() {
 }
 
 function playAgain() {
-    startGame();
+    // For Ninja Mode, go back to mode selection instead of restarting
+    if (gameState.mode === 'ninja') {
+        changeMode();
+    } else {
+        startGame();
+    }
 }
 
 function changeTables() {
@@ -1144,6 +1163,31 @@ function goBackToStart() {
 
 function exitGame() {
     if (gameState.timer) clearInterval(gameState.timer);
+
+    // Clean up Ninja Mode if active
+    if (gameState.mode === 'ninja') {
+        if (gameState.ninjaSpawnInterval) {
+            clearInterval(gameState.ninjaSpawnInterval);
+            gameState.ninjaSpawnInterval = null;
+        }
+        if (gameState.ninjaGameTimer) {
+            clearInterval(gameState.ninjaGameTimer);
+            gameState.ninjaGameTimer = null;
+        }
+        // Remove event listeners
+        document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('keyup', handleKeyUp);
+        const gameArea = document.getElementById('ninja-game-area');
+        if (gameArea) {
+            gameArea.removeEventListener('touchmove', handleTouchMove);
+            gameArea.removeEventListener('mousemove', handleMouseMove);
+        }
+        gameState.ninjaFallingCharacters.forEach(char => {
+            if (char.parentNode) char.remove();
+        });
+        gameState.ninjaFallingCharacters = [];
+    }
+
     gameState.mode = null;
     gameState.currentQuestion = 0;
     gameState.score = 0;
@@ -1154,6 +1198,7 @@ function exitGame() {
     gameState.opponentHits = 0;
     gameState.selectedCharacter = null;
     gameState.opponentCharacter = null;
+    gameState.ninjaLives = 3;
     updateStats();
 
     // Set random character for start screen when exiting
@@ -1206,6 +1251,331 @@ function startWithName() {
     setTimeout(() => {
         document.querySelector('.mode-btn').focus();
     }, 200);
+}
+
+// ==========================================
+// Ninja Mode - Catching Game
+// ==========================================
+
+let basketPosition = 50; // Percentage position (0-100)
+let keysPressed = {};
+
+function startNinjaMode() {
+    // Reset ninja mode state
+    gameState.score = 0;
+    gameState.correctAnswers = 0;
+    gameState.wrongAnswers = 0;
+    gameState.ninjaFallingCharacters = [];
+    gameState.timeLeft = gameState.ninjaGameDuration;
+    basketPosition = 50;
+
+    // Clear any existing intervals
+    if (gameState.ninjaSpawnInterval) clearInterval(gameState.ninjaSpawnInterval);
+    if (gameState.ninjaGameTimer) clearInterval(gameState.ninjaGameTimer);
+
+    updateStats();
+    showScreen('ninja-screen');
+
+    // Initialize basket position
+    const basket = document.getElementById('basket');
+    basket.style.left = basketPosition + '%';
+
+    // Setup controls
+    setupNinjaControls();
+
+    // Start game countdown
+    startNinjaTimer();
+
+    // Start spawning characters and bombs
+    gameState.ninjaSpawnInterval = setInterval(() => {
+        spawnFallingItem();
+    }, 1200); // Spawn new item every 1.2 seconds
+
+    // Start game loop for collision detection
+    startGameLoop();
+}
+
+function startNinjaTimer() {
+    updateNinjaTimerDisplay();
+
+    gameState.ninjaGameTimer = setInterval(() => {
+        gameState.timeLeft--;
+        updateNinjaTimerDisplay();
+
+        if (gameState.timeLeft <= 0) {
+            endNinjaMode();
+        }
+    }, 1000);
+}
+
+function updateNinjaTimerDisplay() {
+    const percentage = (gameState.timeLeft / gameState.ninjaGameDuration) * 100;
+    document.getElementById('ninja-timer-fill').style.width = percentage + '%';
+    document.getElementById('ninja-timer-text').textContent = gameState.timeLeft;
+}
+
+function setupNinjaControls() {
+    // Keyboard controls
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    // Touch/Mouse controls for mobile
+    const gameArea = document.getElementById('ninja-game-area');
+    gameArea.addEventListener('touchmove', handleTouchMove);
+    gameArea.addEventListener('mousemove', handleMouseMove);
+}
+
+function handleKeyDown(e) {
+    if (gameState.mode !== 'ninja') return;
+    keysPressed[e.key] = true;
+}
+
+function handleKeyUp(e) {
+    if (gameState.mode !== 'ninja') return;
+    keysPressed[e.key] = false;
+}
+
+function handleTouchMove(e) {
+    if (gameState.mode !== 'ninja') return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const gameArea = document.getElementById('ninja-game-area');
+    const rect = gameArea.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    basketPosition = Math.max(10, Math.min(90, percentage));
+    updateBasketPosition();
+}
+
+function handleMouseMove(e) {
+    if (gameState.mode !== 'ninja') return;
+    const gameArea = document.getElementById('ninja-game-area');
+    const rect = gameArea.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = (x / rect.width) * 100;
+    basketPosition = Math.max(10, Math.min(90, percentage));
+    updateBasketPosition();
+}
+
+function updateBasketPosition() {
+    const basket = document.getElementById('basket');
+    basket.style.left = basketPosition + '%';
+}
+
+function startGameLoop() {
+    const moveSpeed = 1.5; // Speed of basket movement
+
+    function gameLoop() {
+        if (gameState.mode !== 'ninja') return;
+
+        // Handle keyboard movement
+        if (keysPressed['ArrowLeft']) {
+            basketPosition = Math.max(10, basketPosition - moveSpeed);
+            updateBasketPosition();
+        }
+        if (keysPressed['ArrowRight']) {
+            basketPosition = Math.min(90, basketPosition + moveSpeed);
+            updateBasketPosition();
+        }
+
+        // Check collisions
+        checkCollisions();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+}
+
+function spawnFallingItem() {
+    if (gameState.timeLeft <= 0) return;
+
+    const container = document.getElementById('falling-characters-container');
+    const isBomb = Math.random() < 0.25; // 25% chance of bomb
+
+    // Random horizontal position
+    const leftPosition = Math.random() * 80 + 10; // 10% to 90%
+
+    if (isBomb) {
+        // Create falling bomb
+        const bomb = document.createElement('div');
+        bomb.className = 'falling-bomb';
+        bomb.textContent = '💣';
+        bomb.style.left = leftPosition + '%';
+        bomb.dataset.type = 'bomb';
+
+        // Random fall duration (3-5 seconds)
+        const fallDuration = 3 + Math.random() * 2;
+        bomb.style.animation = `fallStraight ${fallDuration}s linear`;
+
+        container.appendChild(bomb);
+        gameState.ninjaFallingCharacters.push(bomb);
+
+        // Remove bomb when it reaches bottom
+        setTimeout(() => {
+            if (bomb.parentNode && !bomb.dataset.caught) {
+                bomb.remove();
+                const index = gameState.ninjaFallingCharacters.indexOf(bomb);
+                if (index > -1) {
+                    gameState.ninjaFallingCharacters.splice(index, 1);
+                }
+            }
+        }, fallDuration * 1000);
+    } else {
+        // Create falling character
+        const characterKeys = Object.keys(characters);
+        const randomCharKey = characterKeys[Math.floor(Math.random() * characterKeys.length)];
+        const character = characters[randomCharKey];
+
+        const fallingChar = document.createElement('div');
+        fallingChar.className = 'falling-character';
+        fallingChar.style.left = leftPosition + '%';
+        fallingChar.dataset.type = 'character';
+
+        // Add character image
+        const img = document.createElement('img');
+        img.src = character.image;
+        img.alt = character.name;
+        img.className = 'falling-character-img';
+        fallingChar.appendChild(img);
+
+        // Random fall duration (3-5 seconds)
+        const fallDuration = 3 + Math.random() * 2;
+        fallingChar.style.animation = `fallStraight ${fallDuration}s linear`;
+
+        container.appendChild(fallingChar);
+        gameState.ninjaFallingCharacters.push(fallingChar);
+
+        // Remove character when it reaches bottom (missed)
+        setTimeout(() => {
+            if (fallingChar.parentNode && !fallingChar.dataset.caught) {
+                // Missed character - lose 1 point
+                gameState.score = Math.max(0, gameState.score - 1);
+                gameState.wrongAnswers++;
+                showScorePopup(fallingChar, '-1', '#f44336');
+                fallingChar.remove();
+                const index = gameState.ninjaFallingCharacters.indexOf(fallingChar);
+                if (index > -1) {
+                    gameState.ninjaFallingCharacters.splice(index, 1);
+                }
+                updateStats();
+            }
+        }, fallDuration * 1000);
+    }
+}
+
+function checkCollisions() {
+    const basket = document.getElementById('basket');
+    const basketRect = basket.getBoundingClientRect();
+
+    gameState.ninjaFallingCharacters.forEach((item, index) => {
+        if (item.dataset.caught) return;
+
+        const itemRect = item.getBoundingClientRect();
+
+        // Check if item overlaps with basket
+        if (
+            itemRect.bottom >= basketRect.top &&
+            itemRect.top <= basketRect.bottom &&
+            itemRect.right >= basketRect.left &&
+            itemRect.left <= basketRect.right
+        ) {
+            // Caught!
+            item.dataset.caught = 'true';
+            catchItem(item);
+        }
+    });
+}
+
+function catchItem(item) {
+    const isBomb = item.dataset.type === 'bomb';
+
+    if (isBomb) {
+        // Caught a bomb - lose 2 points
+        gameState.score = Math.max(0, gameState.score - 2);
+        gameState.wrongAnswers++;
+        playSound(sounds.wrong);
+        showScorePopup(item, '-2', '#f44336');
+    } else {
+        // Caught a character - gain 1 point
+        gameState.score += 1;
+        gameState.correctAnswers++;
+        playSound(sounds.correct);
+        showScorePopup(item, '+1', '#4caf50');
+    }
+
+    // Remove item with fade effect
+    item.style.animation = 'none';
+    item.style.opacity = '0';
+    item.style.transition = 'opacity 0.3s';
+
+    setTimeout(() => {
+        if (item.parentNode) item.remove();
+        const index = gameState.ninjaFallingCharacters.indexOf(item);
+        if (index > -1) {
+            gameState.ninjaFallingCharacters.splice(index, 1);
+        }
+    }, 300);
+
+    updateStats();
+}
+
+function showScorePopup(item, text, color = '#4caf50') {
+    const rect = item.getBoundingClientRect();
+    const gameArea = document.getElementById('ninja-game-area');
+    const gameRect = gameArea.getBoundingClientRect();
+
+    const popup = document.createElement('div');
+    popup.className = 'score-popup';
+    popup.textContent = text;
+    popup.style.position = 'absolute';
+    popup.style.left = (rect.left + rect.width / 2 - gameRect.left) + 'px';
+    popup.style.top = (rect.top + rect.height / 2 - gameRect.top) + 'px';
+    popup.style.color = color;
+    popup.style.transform = 'translate(-50%, -50%)';
+    popup.style.pointerEvents = 'none';
+
+    gameArea.appendChild(popup);
+
+    setTimeout(() => popup.remove(), 1000);
+}
+
+function endNinjaMode() {
+    // Clear intervals
+    if (gameState.ninjaSpawnInterval) {
+        clearInterval(gameState.ninjaSpawnInterval);
+        gameState.ninjaSpawnInterval = null;
+    }
+    if (gameState.ninjaGameTimer) {
+        clearInterval(gameState.ninjaGameTimer);
+        gameState.ninjaGameTimer = null;
+    }
+
+    // Remove event listeners
+    document.removeEventListener('keydown', handleKeyDown);
+    document.removeEventListener('keyup', handleKeyUp);
+    const gameArea = document.getElementById('ninja-game-area');
+    if (gameArea) {
+        gameArea.removeEventListener('touchmove', handleTouchMove);
+        gameArea.removeEventListener('mousemove', handleMouseMove);
+    }
+
+    // Clear falling characters
+    gameState.ninjaFallingCharacters.forEach(char => {
+        if (char.parentNode) char.remove();
+    });
+    gameState.ninjaFallingCharacters = [];
+
+    // Clear container
+    const container = document.getElementById('falling-characters-container');
+    if (container) container.innerHTML = '';
+
+    // Set total questions for results calculation
+    gameState.totalQuestions = gameState.correctAnswers + gameState.wrongAnswers;
+    gameState.currentQuestion = gameState.totalQuestions;
+
+    // Show results
+    showResults();
 }
 
 // ==========================================

@@ -1126,6 +1126,251 @@ body {
     text-align: center;
 }
 
+/* Ninja Mode Styles */
+.ninja-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.ninja-game-area {
+    position: relative;
+    height: 500px;
+    background: linear-gradient(180deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-radius: 15px;
+    overflow: hidden;
+    margin: 15px 0;
+    border: 3px solid var(--color-purple);
+}
+
+.ninja-instructions {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.ninja-instructions h3 {
+    margin: 0 0 8px 0;
+    color: var(--color-purple);
+    font-size: 1.4em;
+}
+
+.ninja-instructions p {
+    margin: 0;
+    color: var(--color-dark-purple);
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.falling-characters-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.falling-character {
+    position: absolute;
+    top: -100px;
+    width: 80px;
+    height: 80px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+}
+
+.falling-character-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.falling-bomb {
+    position: absolute;
+    top: -100px;
+    width: 60px;
+    height: 60px;
+    font-size: 3em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+    animation: bombSpin 1s linear infinite;
+}
+
+@keyframes bombSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.basket-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.basket {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 80px;
+    font-size: 5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: left 0.1s ease-out;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes fall {
+    from {
+        top: -100px;
+        transform: rotate(0deg);
+    }
+    to {
+        top: 100%;
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fallStraight {
+    from {
+        top: -100px;
+    }
+    to {
+        top: 100%;
+    }
+}
+
+.slice-effects-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.slice-effect {
+    position: absolute;
+    width: 150px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent 0%, #ffeb3b 20%, #ff9800 50%, #ff5722 80%, transparent 100%);
+    box-shadow: 0 0 15px rgba(255, 152, 0, 0.8);
+    pointer-events: none;
+    animation: sliceSlash 0.4s ease-out forwards;
+    transform-origin: center;
+}
+
+@keyframes sliceSlash {
+    0% {
+        opacity: 1;
+        width: 30px;
+    }
+    50% {
+        opacity: 1;
+        width: 150px;
+    }
+    100% {
+        opacity: 0;
+        width: 200px;
+    }
+}
+
+.slice-particles {
+    position: absolute;
+    pointer-events: none;
+}
+
+.slice-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #ffeb3b, #ff9800);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particleBurst 0.6s ease-out forwards;
+}
+
+@keyframes particleBurst {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+    }
+}
+
+.score-popup {
+    position: absolute;
+    font-size: 2em;
+    font-weight: bold;
+    color: #4caf50;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    animation: scorePopup 1s ease-out forwards;
+    z-index: 20;
+}
+
+@keyframes scorePopup {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-30px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-60px) scale(0.8);
+    }
+}
+
+.ninja-lives-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 12px;
+    background: var(--color-light-gray);
+    border-radius: 12px;
+}
+
+.ninja-lives-label {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--color-dark-purple);
+}
+
+.ninja-lives {
+    font-size: 1.8em;
+}
+
 /* Results Screen */
 .results-screen {
     text-align: center;
@@ -1175,6 +1420,35 @@ body {
 
 /* Responsive Design */
 @media (max-width: 600px) {
+    .ninja-game-area {
+        height: 400px;
+    }
+
+    .ninja-instructions h3 {
+        font-size: 1.1em;
+    }
+
+    .ninja-instructions p {
+        font-size: 1em;
+    }
+
+    .falling-character {
+        width: 60px;
+        height: 60px;
+    }
+
+    .falling-bomb {
+        width: 50px;
+        height: 50px;
+        font-size: 2.5em;
+    }
+
+    .basket {
+        width: 80px;
+        height: 60px;
+        font-size: 4em;
+    }
+
     .container {
         padding: 15px;
     }
