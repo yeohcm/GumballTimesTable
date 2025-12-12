@@ -1091,7 +1091,12 @@ function showResults() {
 }
 
 function playAgain() {
-    startGame();
+    // For Ninja Mode, go back to mode selection instead of restarting
+    if (gameState.mode === 'ninja') {
+        changeMode();
+    } else {
+        startGame();
+    }
 }
 
 function changeTables() {
